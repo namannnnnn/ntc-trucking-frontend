@@ -3,12 +3,13 @@
 import { configureStore } from "@reduxjs/toolkit";
 import authReducer from "./features/userSlice";
 import getAllUsersReducer from "./features/fetchUserSlice";
-
+import getAllDriversReducer from "./features/fetchDriversSlice"
 
 const store = configureStore({
   reducer: {
     auth: authReducer,
-    getAllUser : getAllUsersReducer
+    getAllUser : getAllUsersReducer,
+    getAllDriver: getAllDriversReducer
     // driver: driverReducer,
     // trip: tripReducer,
   },
