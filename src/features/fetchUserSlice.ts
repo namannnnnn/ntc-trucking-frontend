@@ -31,8 +31,5 @@ export const getAllUserSlice = createSlice({
        
     },
   });
-  
-  export const { logout } = authSlice.actions;
-
 
 export default getAllUserSlice.reducer;

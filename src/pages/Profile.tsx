@@ -2,18 +2,33 @@ import Breadcrumb from '../components/Breadcrumbs/Breadcrumb';
 import CoverOne from '../images/cover/cover-01.png';
 import userSix from '../images/user/user-06.png';
 import { Link, useNavigate } from 'react-router-dom';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import DefaultLayout from '../layout/DefaultLayout';
 import SelectGroupOne from '../components/Forms/SelectGroup/SelectGroupOne';
 import { Package } from '../types/package';
-
+import { useDispatch } from 'react-redux';
+import { fetchUsers } from '../features/fetchUserSlice';
+import { AppDispatch } from '../store';
 
 
 const Profile = () => {
   const navigate = useNavigate();
+  const dispatch = useDispatch<AppDispatch>();
 
-    const [packageData, setPackageData] = useState([]);
+  const [packageData, setPackageData] = useState([]);
   
+  useEffect(()=>{
+    getAllUsers()
+  },[])
+
+  const getAllUsers = async() => {
+    const result = await dispatch(fetchUsers());
+    console.log(result, 'result');
+    if (result.meta.requestStatus === 'fulfilled') {
+      console.log("fulfilled")
+      setPackageData(result.payload)
+    }
+  }
 
   if (
     localStorage.getItem('token') === undefined ||
