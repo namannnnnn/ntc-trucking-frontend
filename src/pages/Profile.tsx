@@ -55,7 +55,7 @@ const Profile = () => {
 
   const openPopup = () => {
     $("#crud-modal").removeClass("hidden");
-    $("#crud-modal").addClass("show");
+    $("#crud-modal").addClass("show ");
   }
 
   const closePopup = () => {
@@ -140,7 +140,18 @@ const Profile = () => {
   return (
     <>
       <DefaultLayout>
-        <Breadcrumb pageName="Profile" />
+        <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <h2 className="text-title-md2 font-semibold text-black dark:text-white">
+            Profile
+          </h2>
+          <div className="flex flex-col gap-3 sm:flex-row align-items-center sm:justify-end">
+          <button data-modal-target="crud-modal" data-modal-toggle="crud-modal" data-modal-show="crud-modal" data-dialog-backdrop="crud-modal" className="block text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800" type="button" onClick={()=>openPopup()}>
+              Create User
+          </button>
+          </div>
+        </div>
+      
+        {/* <Breadcrumb pageName="Profile" /> */}
         {/* <div className="rounded-sm border border-stroke bg-white shadow-default dark:border-strokedark dark:bg-boxdark">
           <div className="border-b border-stroke py-4 px-6.5 dark:border-strokedark">
             <h3 className="font-medium text-black dark:text-white">
@@ -279,11 +290,6 @@ const Profile = () => {
         </table>
       </div>
         </div>
-            
-
-        <button data-modal-target="crud-modal" data-modal-toggle="crud-modal" data-modal-show="crud-modal" className="block text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800" type="button" onClick={()=>openPopup()}>
-          Create User
-        </button>
 
         <div id="crud-modal" tabIndex="-1" aria-hidden="true" 
             className="hidden overflow-y-auto overflow-x-hidden fixed top-0 right-0 left-0 z-50 justify-center items-center w-full xl:w-1/2 md:inset-0 h-[calc(100%-1rem)] max-h-full"
