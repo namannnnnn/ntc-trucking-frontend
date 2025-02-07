@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { NavLink, useLocation, useNavigate } from 'react-router-dom';
 import SidebarLinkGroup from './SidebarLinkGroup';
 import Logo from '../../images/logo/logo.svg';
-
+import UserOne from '../../images/icon/driver-man.png'
 interface SidebarProps {
   sidebarOpen: boolean;
   setSidebarOpen: (arg: boolean) => void;
@@ -351,6 +351,49 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: SidebarProps) => {
                     pathname.includes('tables') && 'bg-graydark dark:bg-meta-4'
                   }`}
                 >
+                  {/* <svg xmlns="http://www.w3.org/2000/svg" data-name="Layer 1" viewBox="0 0 24 24" width="18" height="19" version="1.1" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:svgjs="http://svgjs.dev/svgjs">
+                  <g width="30%" height="20%" transform="matrix(0.2,0,0,0.2,9.600134468078613,9.6)">
+                    <path d="m12,18c-3.125,0-5.692,2.345-5.973,5.455-.025.275.178.518.453.543.273.023.518-.178.543-.453.093-1.034.5-1.958,1.109-2.706l2.166,2.166c-.063.107-.135.208-.177.327-.092.26.043.546.304.639.259.091.546-.044.639-.304.142-.399.519-.667.937-.667s.795.268.937.667c.073.205.266.333.471.333.056,0,.112-.009.167-.029.26-.093.396-.378.304-.639-.043-.12-.115-.22-.177-.328l2.166-2.166c.609.747,1.015,1.672,1.109,2.706.023.26.201.453.543.453.275-.025.478-.268.453-.543-.281-3.11-2.848-5.455-5.973-5.455Zm1,4.293c-.3-.177-.638-.293-1-.293s-.7.116-1,.293l-2.158-2.158c.862-.704,1.955-1.135,3.158-1.135s2.296.431,3.158,1.135l-2.158,2.158Zm-1-10.293c3.309,0,6-2.691,6-6S15.309,0,12,0s-6,2.691-6,6,2.691,6,6,6Zm0-11c2.757,0,5,2.243,5,5s-2.243,5-5,5-5-2.243-5-5S9.243,1,12,1Zm9.974,22.46c.015.276-.139.506-.5.527-.264,0-.484-.207-.499-.473-.255-4.774-4.198-8.514-8.975-8.514s-8.719,3.74-8.975,8.514c-.015.276-.259.481-.526.473-.275-.015-.487-.25-.473-.526.284-5.305,4.665-9.46,9.974-9.46s9.689,4.156,9.974,9.46Z" fill="#ffffff" fill-opacity="1" data-original-color="#000000ff" stroke="none" stroke-opacity="1"/>
+                    </g>
+                    </svg> */}
+                    {/* <svg
+                    className="fill-current"
+                    width="18"
+                    height="19"
+                    viewBox="0 0 18 19"
+                    fill="none"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <g clipPath="url(#clip0_130_9756)">
+                      <path
+                        d="M15.7501 0.55835H2.2501C1.29385 0.55835 0.506348 1.34585 0.506348 2.3021V15.8021C0.506348 16.7584 1.29385 17.574 2.27822 17.574H15.7782C16.7345 17.574 17.5501 16.7865 17.5501 15.8021V2.3021C17.522 1.34585 16.7063 0.55835 15.7501 0.55835ZM6.69385 10.599V6.4646H11.3063V10.5709H6.69385V10.599ZM11.3063 11.8646V16.3083H6.69385V11.8646H11.3063ZM1.77197 6.4646H5.45635V10.5709H1.77197V6.4646ZM12.572 6.4646H16.2563V10.5709H12.572V6.4646ZM2.2501 1.82397H15.7501C16.0313 1.82397 16.2563 2.04897 16.2563 2.33022V5.2271H1.77197V2.3021C1.77197 2.02085 1.96885 1.82397 2.2501 1.82397ZM1.77197 15.8021V11.8646H5.45635V16.3083H2.2501C1.96885 16.3083 1.77197 16.0834 1.77197 15.8021ZM15.7501 16.3083H12.572V11.8646H16.2563V15.8021C16.2563 16.0834 16.0313 16.3083 15.7501 16.3083Z"
+                        fill=""
+                      />
+                    </g>
+                    <defs>
+                      <clipPath id="clip0_130_9756">
+                        <rect
+                          width="18"
+                          height="18"
+                          fill="white"
+                          transform="translate(0 0.052124)"
+                        />
+                      </clipPath>
+                    </defs>
+                  </svg> */}
+                  <img src={UserOne} alt="User" width="20" height="20"/>
+                  
+                  Driver Management
+                </NavLink>
+              </li>
+              
+              <li>
+                <NavLink
+                  to="/tables"
+                  className={`group relative flex items-center gap-2.5 rounded-sm py-2 px-4 font-medium text-bodydark1 duration-300 ease-in-out hover:bg-graydark dark:hover:bg-meta-4 ${
+                    pathname.includes('tables') && 'bg-graydark dark:bg-meta-4'
+                  }`}
+                >
                   <svg
                     className="fill-current"
                     width="18"
@@ -380,7 +423,6 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: SidebarProps) => {
                 </NavLink>
               </li>
               {/* <!-- Menu Item Tables --> */}
-
               {/* <!-- Menu Item Settings --> */}
               <li>
                 <NavLink
