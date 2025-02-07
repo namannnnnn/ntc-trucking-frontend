@@ -1,4 +1,4 @@
-export type Package = {
+export type Driver = {
     name: string;
     email: string;
     contactNumber: number;

@@ -2,8 +2,8 @@ import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import { API } from "../axiosConfig";
 
 
-// Fetch Users
-export const fetchDrivers = createAsyncThunk("user/fetchUsers", async () => {
+// Fetch Driver
+export const fetchDrivers = createAsyncThunk("driver/fetchDrivers", async () => {
   const response = await API.get("/drivers");
   return response.data;
 });
@@ -11,7 +11,7 @@ export const fetchDrivers = createAsyncThunk("user/fetchUsers", async () => {
 
 export const getAllDriversSlice = createSlice({
     name: "fetchDrivers",
-    initialState: { name: null, email: null, contactNumber: null , truckNumberPlate:null, status: "idle", error: null, users: null},
+    initialState: { name: null, email: null, contactNumber: null , truckNumberPlate:null, status: "idle", error: null, drivers: null},
     reducers: {
       
     },
@@ -23,7 +23,7 @@ export const getAllDriversSlice = createSlice({
         })
         .addCase(fetchDrivers.fulfilled, (state, action) => {
           state.status = "succeeded";
-          state.users = action.payload;
+          state.drivers = action.payload;
         })
         .addCase(fetchDrivers.rejected, (state, action) => {
           state.status = "failed";

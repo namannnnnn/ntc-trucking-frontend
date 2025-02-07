@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import ClickOutside from '../ClickOutside';
-import UserOne from '../../images/user/user.png';
+import UserOne from '../../images/user/user1.png';
 
 const DropdownUser = () => {
   const [dropdownOpen, setDropdownOpen] = useState(false);
@@ -32,8 +32,8 @@ const DropdownUser = () => {
           <span className="block text-xs">{role}</span>
         </span>
 
-        <span className="h-12 w-12 rounded-full">
-          <img src={UserOne} alt="User" />
+        <span className="h-12 w-12 rounded-full flex justify-end items-center dark:text-white">
+          <img src={UserOne} alt="User" width="40" height="40" pl-2/>
         </span>
 
         <svg
