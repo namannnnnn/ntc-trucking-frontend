@@ -79,6 +79,7 @@ const Profile = () => {
         setEmail('')
         setPassword('')
         setRole('')
+        setUserId('')
         $("#crud-modal").removeClass("show");
         $("#crud-modal").addClass("hidden");
       }
@@ -325,7 +326,7 @@ const Profile = () => {
 
                 <div className="w-full xl:w-1/2">
                   <label className="mb-2.5 block text-black dark:text-white">
-                    Email <span className="text-meta-1">*</span>
+                    Email
                   </label>
                   <input
                     type="email"
