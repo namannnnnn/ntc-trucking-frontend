@@ -21,21 +21,21 @@ const Buttons = () => {
               to="#"
               className="inline-flex items-center justify-center bg-primary py-4 px-10 text-center font-medium text-white hover:bg-opacity-90 lg:px-8 xl:px-10"
             >
-              Button
+              Button1
             </Link>
 
             <Link
               to="#"
               className="inline-flex items-center justify-center rounded-md bg-primary py-4 px-10 text-center font-medium text-white hover:bg-opacity-90 lg:px-8 xl:px-10"
             >
-              Button
+              Button2
             </Link>
 
             <Link
               to="#"
               className="inline-flex items-center justify-center rounded-full bg-primary py-4 px-10 text-center font-medium text-white hover:bg-opacity-90 lg:px-8 xl:px-10"
             >
-              Button
+              Button3
             </Link>
 
             <Link
@@ -72,7 +72,7 @@ const Buttons = () => {
               to="#"
               className="inline-flex items-center justify-center rounded-md border border-meta-3 py-4 px-10 text-center font-medium text-meta-3 hover:bg-opacity-90 lg:px-8 xl:px-10"
             >
-              Button
+              Button3 asd
             </Link>
           </div>
 
@@ -95,14 +95,14 @@ const Buttons = () => {
               to="#"
               className="inline-flex items-center justify-center rounded-full bg-black py-4 px-10 text-center font-medium text-white hover:bg-opacity-90 lg:px-8 xl:px-10"
             >
-              Button
+              Button5
             </Link>
 
             <Link
               to="#"
               className="inline-flex items-center justify-center rounded-md border border-black py-4 px-10 text-center font-medium text-black hover:bg-opacity-90 lg:px-8 xl:px-10"
             >
-              Button
+              Button6
             </Link>
           </div>
         </div>

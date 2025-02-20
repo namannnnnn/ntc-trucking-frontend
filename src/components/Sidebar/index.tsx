@@ -1,9 +1,9 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { NavLink, useLocation, useNavigate } from 'react-router-dom';
 import SidebarLinkGroup from './SidebarLinkGroup';
-import Logo from '../../images/logo/logo.svg';
-import UserOne from '../../images/icon/driver-man.png'
-import Trip from '../../images/icon/moving.png'
+import Logo from '../../images/logo/logo.png';
+import UserOne from '../../images/icon/driver-man.png';
+import Trip from '../../images/icon/moving.png';
 
 interface SidebarProps {
   sidebarOpen: boolean;
@@ -15,17 +15,21 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: SidebarProps) => {
   const { pathname } = location;
 
   const navigate = useNavigate();
-    
-    if(localStorage.getItem('token') === undefined || !localStorage.getItem('token') || localStorage.getItem('token') === null){
-      navigate('auth/signin')
-    }
+
+  if (
+    localStorage.getItem('token') === undefined ||
+    !localStorage.getItem('token') ||
+    localStorage.getItem('token') === null
+  ) {
+    navigate('auth/signin');
+  }
 
   const trigger = useRef<any>(null);
   const sidebar = useRef<any>(null);
 
   const storedSidebarExpanded = localStorage.getItem('sidebar-expanded');
   const [sidebarExpanded, setSidebarExpanded] = useState(
-    storedSidebarExpanded === null ? false : storedSidebarExpanded === 'true'
+    storedSidebarExpanded === null ? false : storedSidebarExpanded === 'true',
   );
 
   // close on click outside
@@ -111,7 +115,7 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: SidebarProps) => {
 
             <ul className="mb-6 flex flex-col gap-1.5">
               {/* <!-- Menu Item Dashboard --> */}
-              <SidebarLinkGroup
+              {/* <SidebarLinkGroup
                 activeCondition={
                   pathname === '/' || pathname.includes('dashboard')
                 }
@@ -177,7 +181,6 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: SidebarProps) => {
                           />
                         </svg>
                       </NavLink>
-                      {/* <!-- Dropdown Menu Start --> */}
                       <div
                         className={`translate transform overflow-hidden ${
                           !open && 'hidden'
@@ -197,15 +200,46 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: SidebarProps) => {
                           </li>
                         </ul>
                       </div>
-                      {/* <!-- Dropdown Menu End --> */}
                     </React.Fragment>
                   );
                 }}
-              </SidebarLinkGroup>
+              </SidebarLinkGroup> */}
               {/* <!-- Menu Item Dashboard --> */}
-
-              
-
+              <li>
+                <NavLink
+                  to="/"
+                  className={`group relative flex items-center gap-2.5 rounded-sm py-2 px-4 font-medium text-bodydark1 duration-300 ease-in-out hover:bg-graydark dark:hover:bg-meta-4 ${
+                    pathname.includes('profile') && 'bg-graydark dark:bg-meta-4'
+                  }`}
+                >
+                  <svg
+                          className="fill-current"
+                          width="18"
+                          height="18"
+                          viewBox="0 0 18 18"
+                          fill="none"
+                          xmlns="http://www.w3.org/2000/svg"
+                        >
+                          <path
+                            d="M6.10322 0.956299H2.53135C1.5751 0.956299 0.787598 1.7438 0.787598 2.70005V6.27192C0.787598 7.22817 1.5751 8.01567 2.53135 8.01567H6.10322C7.05947 8.01567 7.84697 7.22817 7.84697 6.27192V2.72817C7.8751 1.7438 7.0876 0.956299 6.10322 0.956299ZM6.60947 6.30005C6.60947 6.5813 6.38447 6.8063 6.10322 6.8063H2.53135C2.2501 6.8063 2.0251 6.5813 2.0251 6.30005V2.72817C2.0251 2.44692 2.2501 2.22192 2.53135 2.22192H6.10322C6.38447 2.22192 6.60947 2.44692 6.60947 2.72817V6.30005Z"
+                            fill=""
+                          />
+                          <path
+                            d="M15.4689 0.956299H11.8971C10.9408 0.956299 10.1533 1.7438 10.1533 2.70005V6.27192C10.1533 7.22817 10.9408 8.01567 11.8971 8.01567H15.4689C16.4252 8.01567 17.2127 7.22817 17.2127 6.27192V2.72817C17.2127 1.7438 16.4252 0.956299 15.4689 0.956299ZM15.9752 6.30005C15.9752 6.5813 15.7502 6.8063 15.4689 6.8063H11.8971C11.6158 6.8063 11.3908 6.5813 11.3908 6.30005V2.72817C11.3908 2.44692 11.6158 2.22192 11.8971 2.22192H15.4689C15.7502 2.22192 15.9752 2.44692 15.9752 2.72817V6.30005Z"
+                            fill=""
+                          />
+                          <path
+                            d="M6.10322 9.92822H2.53135C1.5751 9.92822 0.787598 10.7157 0.787598 11.672V15.2438C0.787598 16.2001 1.5751 16.9876 2.53135 16.9876H6.10322C7.05947 16.9876 7.84697 16.2001 7.84697 15.2438V11.7001C7.8751 10.7157 7.0876 9.92822 6.10322 9.92822ZM6.60947 15.272C6.60947 15.5532 6.38447 15.7782 6.10322 15.7782H2.53135C2.2501 15.7782 2.0251 15.5532 2.0251 15.272V11.7001C2.0251 11.4188 2.2501 11.1938 2.53135 11.1938H6.10322C6.38447 11.1938 6.60947 11.4188 6.60947 11.7001V15.272Z"
+                            fill=""
+                          />
+                          <path
+                            d="M15.4689 9.92822H11.8971C10.9408 9.92822 10.1533 10.7157 10.1533 11.672V15.2438C10.1533 16.2001 10.9408 16.9876 11.8971 16.9876H15.4689C16.4252 16.9876 17.2127 16.2001 17.2127 15.2438V11.7001C17.2127 10.7157 16.4252 9.92822 15.4689 9.92822ZM15.9752 15.272C15.9752 15.5532 15.7502 15.7782 15.4689 15.7782H11.8971C11.6158 15.7782 11.3908 15.5532 11.3908 15.272V11.7001C11.3908 11.4188 11.6158 11.1938 11.8971 11.1938H15.4689C15.7502 11.1938 15.9752 11.4188 15.9752 11.7001V15.272Z"
+                            fill=""
+                          />
+                        </svg>
+                  Dashboard
+                </NavLink>
+              </li>
               {/* <!-- Menu Item Profile --> */}
               <li>
                 <NavLink
@@ -358,7 +392,7 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: SidebarProps) => {
                     <path d="m12,18c-3.125,0-5.692,2.345-5.973,5.455-.025.275.178.518.453.543.273.023.518-.178.543-.453.093-1.034.5-1.958,1.109-2.706l2.166,2.166c-.063.107-.135.208-.177.327-.092.26.043.546.304.639.259.091.546-.044.639-.304.142-.399.519-.667.937-.667s.795.268.937.667c.073.205.266.333.471.333.056,0,.112-.009.167-.029.26-.093.396-.378.304-.639-.043-.12-.115-.22-.177-.328l2.166-2.166c.609.747,1.015,1.672,1.109,2.706.023.26.201.453.543.453.275-.025.478-.268.453-.543-.281-3.11-2.848-5.455-5.973-5.455Zm1,4.293c-.3-.177-.638-.293-1-.293s-.7.116-1,.293l-2.158-2.158c.862-.704,1.955-1.135,3.158-1.135s2.296.431,3.158,1.135l-2.158,2.158Zm-1-10.293c3.309,0,6-2.691,6-6S15.309,0,12,0s-6,2.691-6,6,2.691,6,6,6Zm0-11c2.757,0,5,2.243,5,5s-2.243,5-5,5-5-2.243-5-5S9.243,1,12,1Zm9.974,22.46c.015.276-.139.506-.5.527-.264,0-.484-.207-.499-.473-.255-4.774-4.198-8.514-8.975-8.514s-8.719,3.74-8.975,8.514c-.015.276-.259.481-.526.473-.275-.015-.487-.25-.473-.526.284-5.305,4.665-9.46,9.974-9.46s9.689,4.156,9.974,9.46Z" fill="#ffffff" fill-opacity="1" data-original-color="#000000ff" stroke="none" stroke-opacity="1"/>
                     </g>
                     </svg> */}
-                    {/* <svg
+                  {/* <svg
                     className="fill-current"
                     width="18"
                     height="19"
@@ -383,8 +417,7 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: SidebarProps) => {
                       </clipPath>
                     </defs>
                   </svg> */}
-                  <img src={UserOne} alt="User" width="20" height="20"/>
-                  
+                  <img src={UserOne} alt="User" width="20" height="20" />
                   Driver Management
                 </NavLink>
               </li>
@@ -400,7 +433,7 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: SidebarProps) => {
                     <path d="m12,18c-3.125,0-5.692,2.345-5.973,5.455-.025.275.178.518.453.543.273.023.518-.178.543-.453.093-1.034.5-1.958,1.109-2.706l2.166,2.166c-.063.107-.135.208-.177.327-.092.26.043.546.304.639.259.091.546-.044.639-.304.142-.399.519-.667.937-.667s.795.268.937.667c.073.205.266.333.471.333.056,0,.112-.009.167-.029.26-.093.396-.378.304-.639-.043-.12-.115-.22-.177-.328l2.166-2.166c.609.747,1.015,1.672,1.109,2.706.023.26.201.453.543.453.275-.025.478-.268.453-.543-.281-3.11-2.848-5.455-5.973-5.455Zm1,4.293c-.3-.177-.638-.293-1-.293s-.7.116-1,.293l-2.158-2.158c.862-.704,1.955-1.135,3.158-1.135s2.296.431,3.158,1.135l-2.158,2.158Zm-1-10.293c3.309,0,6-2.691,6-6S15.309,0,12,0s-6,2.691-6,6,2.691,6,6,6Zm0-11c2.757,0,5,2.243,5,5s-2.243,5-5,5-5-2.243-5-5S9.243,1,12,1Zm9.974,22.46c.015.276-.139.506-.5.527-.264,0-.484-.207-.499-.473-.255-4.774-4.198-8.514-8.975-8.514s-8.719,3.74-8.975,8.514c-.015.276-.259.481-.526.473-.275-.015-.487-.25-.473-.526.284-5.305,4.665-9.46,9.974-9.46s9.689,4.156,9.974,9.46Z" fill="#ffffff" fill-opacity="1" data-original-color="#000000ff" stroke="none" stroke-opacity="1"/>
                     </g>
                     </svg> */}
-                    {/* <svg
+                  {/* <svg
                     className="fill-current"
                     width="18"
                     height="19"
@@ -425,12 +458,10 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: SidebarProps) => {
                       </clipPath>
                     </defs>
                   </svg> */}
-                  <img src={Trip} alt="Trip" width="20" height="20"/>
-                  
+                  <img src={Trip} alt="Trip" width="20" height="20" />
                   Trip Management
                 </NavLink>
-              </li>        
-              
+              </li>
 
               <li>
                 <NavLink

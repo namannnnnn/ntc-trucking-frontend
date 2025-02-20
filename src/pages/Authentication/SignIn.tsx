@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import Breadcrumb from '../../components/Breadcrumbs/Breadcrumb';
-import LogoDark from '../../images/logo/logo-dark.svg';
+// import LogoDark from '../../images/logo/logo-dark.svg';
 
-import Logo from '../../images/logo/logo.svg';
+import Logo from '../../images/logo/logo.png';
 import { useDispatch, useSelector } from 'react-redux';
 import { AppDispatch } from '../../store';
 // import {login} from '../../actions/usersAction.js';
