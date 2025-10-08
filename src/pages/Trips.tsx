@@ -7,6 +7,7 @@ import { fetchTrips } from '../features/fetchTripsSlice';
 import { Trip } from '../types/trips';
 import { createTrip } from '../features/createTripSlice';
 import $ from 'jquery';
+import { toast } from 'react-toastify';
 
 const Trips = () => {
   const [origin, setOrigin] = useState('');
@@ -16,6 +17,7 @@ const Trips = () => {
   const [trip, setTrip] = useState({});
   const [isOptionSelected, setIsOptionSelected] = useState<boolean>(false);
 
+  
   useEffect(() => {
     if (
       localStorage.getItem('token') === undefined ||
@@ -25,6 +27,12 @@ const Trips = () => {
       navigate('auth/signin');
     }
   }, []);
+
+  useEffect(() => {
+  toast.info('Toaster test!');
+}, []);
+
+
   const InputField = ({ label, value, onChange, disabled = false }) => (
     <div className="w-full xl:w-1/2">
       <label className="mb-2 block text-black dark:text-white">
@@ -77,6 +85,8 @@ const Trips = () => {
     if (isEdit) {
       const result = await dispatch(createTrip({ origin, destination }));
       if (result.meta.requestStatus === 'fulfilled') {
+        console.log('Dispatch fulfilled — showing toast');
+        toast.success('Trip edited successfully!');
         getAllTrips();
         setIsEdit(false);
         setOrigin('');
@@ -84,17 +94,22 @@ const Trips = () => {
         $('#crud-modal-edit').removeClass('show');
         $('#crud-modal-edit').addClass('hidden');
         // }
-      } 
+      } else {
+        toast.error('Trip failed successfully!');
+      }
     }else {
       console.log('inside');
       const result = await dispatch(createTrip({ origin, destination }));
       if (result.meta.requestStatus === 'fulfilled') {
+        toast.success('Trip created successfully!');
         getAllTrips();
         setIsEdit(false);
         setOrigin('');
         setDestination('');
         $('#crud-modal2').removeClass('show');
         $('#crud-modal2').addClass('hidden');
+      } else {
+        toast.error('Trip edit failed!');
       }
     }
   };

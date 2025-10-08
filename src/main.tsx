@@ -8,6 +8,8 @@ import 'jsvectormap/dist/css/jsvectormap.css';
 import 'flatpickr/dist/flatpickr.min.css';
 import { Provider } from 'react-redux';
 import store from './store';
+import { ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 ReactDOM.createRoot(document.getElementById('root') as HTMLElement).render(
   <Provider store={store}>
@@ -15,6 +17,18 @@ ReactDOM.createRoot(document.getElementById('root') as HTMLElement).render(
     <Router>
       
       <App />
+      <ToastContainer
+          position="top-right"
+          autoClose={3000}
+          hideProgressBar={false}
+          newestOnTop
+          closeOnClick
+          pauseOnHover
+          draggable
+          theme="colored"
+          style={{ zIndex: 99999 }}
+        />
+
     </Router>
     
   </React.StrictMode>
