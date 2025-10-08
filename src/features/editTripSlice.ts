@@ -35,6 +35,7 @@ interface AdminTripUpdatePayload {
   mileage: number;
   grossIncome: number;
   additionalIncome: number;
+  otherPay: number;
 }
 
 export const editTripFinancialsAsAdmin = createAsyncThunk(

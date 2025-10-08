@@ -31,12 +31,16 @@ const Trips = () => {
     balance: 0,
     otherPay: 0,
     startTimeStamp: '',
-    endTimeStamp: ''
+    endTimeStamp: '',
+    costPerMile: 0
   });
   const [isOptionSelected, setIsOptionSelected] = useState<boolean>(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isModalOpenEdit, setIsModalOpenEdit] = useState(false);
+  const [isModalOpenDel, setIsModalOpenDel] = useState(false);
   const userRole = localStorage.getItem("role");
   const [startTimeDisabled, setStartTimeDisabled] = useState(false)
+  const [tripId, setTripId] = useState('')
 
   useEffect(() => {
     if (
@@ -61,20 +65,20 @@ const Trips = () => {
     // Driver's Pay = payPerMile * mileage
     const driversPay = Number(trip.payPerMile || 0) * Number(trip.mileage || 0);
   
-    // Other Pay = additionalIncome
-    const otherPay = Number(trip.additionalIncome || 0);
-  
     // Gross Income
     const grossIncome = Number(trip.grossIncome || 0);
   
     // Balance = grossIncome - (driversPay + otherPay + totalExpenses)
-    const balance = grossIncome - (driversPay + otherPay + totalExpenses);
+    const balance = grossIncome - (driversPay + Number(trip.otherPay || 0) + totalExpenses);
+
+    const costPerMile =Math.round((Number(trip.fuelCost || 0)/Number(trip.mileage || 0) + Number.EPSILON) * 100) / 100 ;
   
     // Update state
     setTrip(prev => ({
       ...prev,
       totalExpenses,
       balance,
+      costPerMile
     }));
   }, [
     trip.fuelCost,
@@ -115,6 +119,7 @@ const Trips = () => {
     setIsEdit(false);
     setIsModalOpen(false)
     setStartTimeDisabled(false)
+    setIsModalOpenEdit(false)
     setTrip({
       origin: '',
       destination: '',
@@ -130,7 +135,7 @@ const Trips = () => {
       balance: 0,
       otherPay: 0,
       startTimeStamp: '',
-      endTimeStamp: ''
+      endTimeStamp: '',
     })
   };
 
@@ -156,7 +161,8 @@ const Trips = () => {
           payPerMile: trip.payPerMile,
           mileage: trip.mileage,
           grossIncome: trip.grossIncome,
-          additionalIncome: trip.additionalIncome
+          additionalIncome: trip.additionalIncome,
+          otherPay: trip.otherPay
         }));
       }
       // const result = await dispatch(createTrip({ origin, destination }));
@@ -166,9 +172,9 @@ const Trips = () => {
         setIsEdit(false);
         setOrigin('');
         setDestination('');
-        $('#crud-modal-edit').removeClass('show');
-        $('#crud-modal-edit').addClass('hidden');
-        // }
+        // $('#crud-modal-edit').removeClass('show');
+        // $('#crud-modal-edit').addClass('hidden');
+        closePopup()
       } else {
         if(result.payload.status == 403){
           toast.error("You're not authorized to perform this action");
@@ -184,8 +190,9 @@ const Trips = () => {
         setIsEdit(false);
         setOrigin('');
         setDestination('');
-        $('#crud-modal2').removeClass('show');
-        $('#crud-modal2').addClass('hidden');
+        // $('#crud-modal2').removeClass('show');
+        // $('#crud-modal2').addClass('hidden');
+        closePopup()
       } else {
         if(result.payload.status == 403){
           toast.error("You're not authorized to perform this action");
@@ -201,6 +208,7 @@ const Trips = () => {
     $('#crud-modal-edit').removeClass('hidden');
     $('#crud-modal-edit').addClass('show');
     setIsEdit(true);
+    setIsModalOpenEdit(true)
     const updatedTrip = { ...trip };
 
     if (updatedTrip.startTime && updatedTrip.startTime !== "") {
@@ -212,16 +220,34 @@ const Trips = () => {
     setTrip(updatedTrip);
   };
 
-  const openDeleteUserPopup = (userId: any) => {
-    setUserId(userId);
+  const openDeleteUserPopup = (tripId: any) => {
     $('#delete-user-modal').removeClass('hidden');
     $('#delete-user-modal').addClass('show');
+    setIsModalOpenDel(true)
+    setTripId(tripId)
   };
 
   const closeDeletePopup = () => {
     $('#delete-user-modal').removeClass('show');
     $('#delete-user-modal').addClass('hidden');
-    setUserId('');
+    setIsModalOpenDel(false)
+    setTripId('')
+  };
+
+  const handleDelete =async(tripId: string) => {
+    const result = await dispatch(deleteTrip(tripId));
+    if (result.meta.requestStatus === 'fulfilled') {
+      toast.success('Trip was deleted successfully!');
+      getAllTrips()
+      closeDeletePopup()
+    } else {
+        if(result.payload.status == 403){
+          toast.error("You're not authorized to perform this action");
+        } else {
+          toast.error('Trip deletion failed!');
+        }
+        
+      }
   };
 
   const navigate = useNavigate();
@@ -296,21 +322,6 @@ const Trips = () => {
       ...prevTrip,
       additionalCosts: prevTrip.additionalCosts.filter((_, index) => index !== indexToRemove),
     }));
-  };
-  
-  const handleDelete =async(tripId: string) => {
-    const result = await dispatch(deleteTrip(tripId));
-    if (result.meta.requestStatus === 'fulfilled') {
-      toast.success('Trip was deleted successfully!');
-      getAllTrips()
-    } else {
-        if(result.payload.status == 403){
-          toast.error("You're not authorized to perform this action");
-        } else {
-          toast.error('Trip deletion failed!');
-        }
-        
-      }
   };
 
   return (
@@ -425,8 +436,8 @@ const Trips = () => {
                             className="hover:text-primary"
                             type="button"
                             onClick={() =>
-                              // openDeleteUserPopup(packageItem['_id'])
-                              handleDelete(packageItem._id)
+                              openDeleteUserPopup(packageItem['_id'])
+                              // handleDelete(packageItem._id)
                             }
                             data-modal-target="delete-user-modal"
                             data-modal-toggle="delete-user-modal"
@@ -567,568 +578,294 @@ const Trips = () => {
           </div>
           </>)}
 
-        {/* <div
-          id="crud-modal-edit"
-          tabIndex="-1"
-          aria-hidden="true"
-          className="hidden  overflow-x-hidden fixed top-0 right-0 left-0 z-50 justify-center items-center w-full xl:w-1/2 md:inset-0 h-[calc(100%-1rem)] max-h-full "
-          style={{ left: '30%', top: '15%'}}
-          
-        >
-          <div className="rounded-sm border border-stroke bg-white shadow-default dark:border-strokedark dark:bg-boxdark ">
-            <div className="flex border-b border-stroke py-4 px-6.5 dark:border-strokedark">
-              <h3 className="font-medium text-black dark:text-white">
-                {isEdit == true ? 'Edit Trip' : 'Create Trip'}
-              </h3>
-              <button
-                type="button"
-                className="text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 ms-auto inline-flex justify-center items-center dark:hover:bg-gray-600 dark:hover:text-white"
-                data-modal-toggle="crud-modal2"
-                onClick={() => closePopup()}
-              >
-                <svg
-                  className="w-3 h-3"
-                  aria-hidden="true"
-                  xmlns="http://www.w3.org/2000/svg"
-                  fill="none"
-                  viewBox="0 0 14 14"
-                >
-                  <path
-                    stroke="currentColor"
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    stroke-width="2"
-                    d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6"
-                  />
-                </svg>
-                <span className="sr-only">Close modal</span>
-              </button>
-            </div>
-            <form >
-              <div className="p-6.5">
-                <div className="mb-4.5 flex flex-col gap-6 xl:flex-row">
-                  <div className="w-full xl:w-1/2">
-                    <label className="mb-2.5 block text-black dark:text-white">
-                      Origin <span className="text-meta-1">*</span>
-                    </label>
-                    <input
-                      type="text"
-                      value={trip.origin}
-                      placeholder="Enter the origin of the trip"
-                      className="w-full rounded border-[1.5px] border-stroke bg-transparent py-3 px-5 text-black outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:text-white dark:focus:border-primary"
-                      onChange={(e) => setOrigin(e.target.value)}
-                    />
-                  </div>
-
-                  <div className="w-full xl:w-1/2">
-                    <label className="mb-2.5 block text-black dark:text-white">
-                      Destination <span className="text-meta-1">*</span>
-                    </label>
-                    <input
-                      type="text"
-                      value={trip.destination}
-                      placeholder="Enter the destination of the trip"
-                      className="w-full rounded border-[1.5px] border-stroke bg-transparent py-3 px-5 text-black outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:text-white dark:focus:border-primary"
-                      onChange={(e) => setDestination(e.target.value)}
-                    />
-                  </div>
-                </div>
-                <div className="mb-4.5 flex flex-col gap-6 xl:flex-row">
-                  <div className="w-full xl:w-1/2">
-                  <Link
-                  to="#"
-                  className="block items-center justify-center rounded-md border border-meta-3 py-4 px-10 text-center font-medium text-meta-3 hover:bg-opacity-90 lg:px-8 xl:px-10"
-                  
-                >
-                  Start Time
-                </Link>
-                </div>
-                  <div className="w-full xl:w-1/2">
-                  <Link
-                  to="#"
-                  className="block items-center justify-center rounded-md border border-red py-4 px-10 text-center font-medium text-red hover:bg-opacity-90 lg:px-8 xl:px-10"
-                >
-                  End Time
-                </Link></div>
-                </div>
-     
-              </div>
-            </form>
-            <h3 className="pl-6.5"> Financial Details </h3>
-
-            <form>
-              <div className="p-6.5">
-                <div className="mb-4.5 flex flex-col gap-6 xl:flex-row">
-                  <div className="w-full xl:w-1/2">
-                    <label className="mb-2.5 block text-black dark:text-white">
-                      Pay per mile<span className="text-meta-1">*</span>
-                    </label>
-                    <input
-                      type="text"
-                      value={trip.payPerMile}
-                      placeholder="Enter the origin of the trip"
-                      className="w-full rounded border-[1.5px] border-stroke bg-transparent py-3 px-5 text-black outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:text-white dark:focus:border-primary"
-                      onChange={(e) => setOrigin(e.target.value)}
-                    />
-                  </div>
-
-                  <div className="w-full xl:w-1/2">
-                    <label className="mb-2.5 block text-black dark:text-white">
-                      Mileage <span className="text-meta-1">*</span>
-                    </label>
-                    <input
-                      type="text"
-                      value={trip.mileage}
-                      placeholder="Enter the destination of the trip"
-                      className="w-full rounded border-[1.5px] border-stroke bg-transparent py-3 px-5 text-black outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:text-white dark:focus:border-primary"
-                      onChange={(e) => setDestination(e.target.value)}
-                    />
-                  </div>
-                </div>
-                <div className="mb-4.5 flex flex-col gap-6 xl:flex-row">
-                  <div className="w-full xl:w-1/2">
-                    <label className="mb-2.5 block text-black dark:text-white">
-                      Driver's Pay<span className="text-meta-1">*</span>
-                    </label>
-                    <input
-                      type="text"
-                      value={(trip.payPerMile)*(trip.mileage)}
-                      placeholder="Enter the origin of the trip"
-                      className="w-full rounded border-[1.5px] border-stroke bg-transparent py-3 px-5 text-black outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:text-white dark:focus:border-primary"
-                      // onChange={(e) => setOrigin(e.target.value)}
-                      disabled={true}
-                    />
-                  </div>
-
-                  <div className="w-full xl:w-1/2">
-                    <label className="mb-2.5 block text-black dark:text-white">
-                      Other Pay <span className="text-meta-1">*</span>
-                    </label>
-                    <input
-                      type="text"
-                      value={trip.additionalIncome}
-                      placeholder="Enter the destination of the trip"
-                      className="w-full rounded border-[1.5px] border-stroke bg-transparent py-3 px-5 text-black outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:text-white dark:focus:border-primary"
-                      onChange={(e) => setDestination(e.target.value)}
-                    />
-                  </div>
-                </div>
-                <div className="block mb-4.5">
-                    <label className="mb-2.5 block text-black dark:text-white">
-                    Gross Income<span className="text-meta-1">*</span>
-                    </label>
-                    <input
-                      type="text"
-                      value={trip.grossIncome}
-                      placeholder="Enter the origin of the trip"
-                      className="w-full rounded border-[1.5px] border-stroke bg-transparent py-3 px-5 text-black outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:text-white dark:focus:border-primary"
-                      onChange={(e) => setOrigin(e.target.value)}
-                    />
-                  </div>
-                  <div className="block mb-4.5">
-                    <label className="mb-2.5 block text-black dark:text-white">
-                    Additional Costs<span className="text-meta-1">*</span>
-                    </label>
-                    <input
-                      type="text"
-                      value={trip.additionalIncome}
-                      placeholder="Enter the origin of the trip"
-                      className="w-full rounded border-[1.5px] border-stroke bg-transparent py-3 px-5 text-black outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:text-white dark:focus:border-primary"
-                      onChange={(e) => setOrigin(e.target.value)}
-                    />
-                  </div>
-              </div>
-            </form>
-            <h3 className="pl-6.5"> Driver Costs </h3>
-            <div className="p-6.5">
-              <div className="block mb-4.5">
-                  <label className="mb-2.5 block text-black dark:text-white">
-                  Fuel Cost<span className="text-meta-1">*</span>
-                  </label>
-                  <input
-                    type="text"
-                    value={trip.fuelCost}
-                    placeholder="Enter the origin of the trip"
-                    className="w-full rounded border-[1.5px] border-stroke bg-transparent py-3 px-5 text-black outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:text-white dark:focus:border-primary"
-                    onChange={(e) => setOrigin(e.target.value)}
-                  />
-                </div>
-                <div className="block mb-4.5">
-                  <label className="mb-2.5 block text-black dark:text-white">
-                  Additional Costs<span className="text-meta-1">*</span>
-                  </label>
-                  {trip.additionalCosts && trip.additionalCosts.map((elem, idx )=>{
-                      return(
-                        <>
-                        <div className="mb-4.5 flex flex-col gap-6 xl:flex-row">
-                          <div className="w-full xl:w-1/2">
-                            <div className="mb-4.5">
-                              <label className="mb-2.5 block text-black dark:text-white">
-                                {' '}
-                                Category{' '}
-                              </label>
-
-                              <div className="relative z-20 bg-transparent dark:bg-form-input">
-                                  <select
-                                    key={"cat"+ elem._id}
-                                    id={`category` + idx}
-                                    name={`category` + idx}
-                                    value={elem.category}
-                                    onChange={(e) => {
-                                      setOrigin(e.target.value);
-                                      changeTextColor();
-                                    }}
-                                    className={`relative z-20 w-full appearance-none rounded border border-stroke bg-transparent py-3 px-5 outline-none transition focus:border-primary active:border-primary dark:border-form-strokedark dark:bg-form-input dark:focus:border-primary ${
-                                      isOptionSelected ? 'text-black dark:text-white' : ''
-                                    }`}
-                                  >
-                                    <option value="" disabled className="text-body dark:text-bodydark">
-                                      Select your Category
-                                    </option>
-                                    <option value="Toll" className="text-body dark:text-bodydark">
-                                      Toll
-                                    </option>
-                                    <option value="Maintenance" className="text-body dark:text-bodydark">
-                                      Maintenance
-                                    </option>
-                                    <option value="Miscellaneous" className="text-body dark:text-bodydark">
-                                    Miscellaneous
-                                    </option>
-                                  </select>
-                                
-                                <span className="absolute top-1/2 right-4 z-30 -translate-y-1/2">
-                                  <svg
-                                    className="fill-current"
-                                    width="24"
-                                    height="24"
-                                    viewBox="0 0 24 24"
-                                    fill="none"
-                                    xmlns="http://www.w3.org/2000/svg"
-                                  >
-                                    <g opacity="0.8">
-                                      <path
-                                        fillRule="evenodd"
-                                        clipRule="evenodd"
-                                        d="M5.29289 8.29289C5.68342 7.90237 6.31658 7.90237 6.70711 8.29289L12 13.5858L17.2929 8.29289C17.6834 7.90237 18.3166 7.90237 18.7071 8.29289C19.0976 8.68342 19.0976 9.31658 18.7071 9.70711L12.7071 15.7071C12.3166 16.0976 11.6834 16.0976 11.2929 15.7071L5.29289 9.70711C4.90237 9.31658 4.90237 8.68342 5.29289 8.29289Z"
-                                        fill=""
-                                      ></path>
-                                    </g>
-                                  </svg>
-                                </span>
-                              </div>
-                            </div>
-                          </div>
-
-                          <div className="w-full xl:w-1/2">
-                            <label className="mb-2.5 block text-black dark:text-white">
-                              Cost
-                            </label>
-                              <input
-                              key={"cost"+ elem._id}
-                              id={`cost` + idx}
-                              name={`cost` + idx}
-                              type="text"
-                              value={elem.amount}
-                              placeholder="Enter user's password"
-                              className="w-full rounded border-[1.5px] border-stroke bg-transparent py-3 px-5 text-black outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:text-white dark:focus:border-primary"
-                              onChange={(e)=>setPassword(e.target.value)}
-                              />
-                          </div>
-                        </div>
-                        </>
-                      )
-                  })}
-                  
-                </div>
-
-              <button
-                type="button"
-                onClick={() => createNewTrip()}
-                className="flex w-full justify-center rounded bg-primary p-3 font-medium text-gray hover:bg-opacity-90"
-              >
-                Save
-              </button>
-            </div>
-            </div>
-          <button
-            type="button"
-            onClick={() => createNewTrip()}
-            className="flex w-full justify-center rounded bg-primary p-3 font-medium text-gray hover:bg-opacity-90"
+        {isModalOpenEdit && (
+        <>
+        {/* Background Overlay */}
+        <div className="fixed inset-0 bg-black bg-opacity-50 z-40"> </div>
+          <div
+            id="crud-modal-edit"
+            tabIndex={-1}
+            aria-hidden="true"
+            className="overflow-x-hidden fixed inset-0 z-50 flex items-center justify-center overflow-auto p-4 pt-20"
+            style={{ left: '18%'}}
           >
-            Save
-          </button>
-        </div> */}
+            <div className="w-full max-w-4xl rounded-md border border-stroke bg-white shadow-xl dark:border-strokedark dark:bg-boxdark max-h-[75vh] overflow-y-auto custom-scrollbar">
+              {/* Modal Header */}
+              <div className="flex items-center justify-between border-b border-stroke py-4 px-6 dark:border-strokedark">
+                <h3 className="text-lg font-semibold text-black dark:text-white">
+                  {isEdit == true ? 'Edit Trip' : 'Create Trip'}
+                </h3>
+                <button
+                  onClick={closePopup}
+                  className="text-gray-400 hover:text-gray-700 dark:hover:text-white"
+                  aria-label="Close modal"
+                >
+                  ✕
+                </button>
+              </div>
 
-<div
-  id="crud-modal-edit"
-  tabIndex={-1}
-  aria-hidden="true"
-  className="hidden overflow-x-hidden fixed inset-0 z-50 flex items-center justify-center overflow-auto bg-black/50 p-4 pt-20"
->
-  <div className="w-full max-w-4xl rounded-md border border-stroke bg-white shadow-xl dark:border-strokedark dark:bg-boxdark max-h-[90vh] overflow-y-auto custom-scrollbar">
-    {/* Modal Header */}
-    <div className="flex items-center justify-between border-b border-stroke py-4 px-6 dark:border-strokedark">
-      <h3 className="text-lg font-semibold text-black dark:text-white">
-        {isEdit == true ? 'Edit Trip' : 'Create Trip'}
-      </h3>
-      <button
-        onClick={closePopup}
-        className="text-gray-400 hover:text-gray-700 dark:hover:text-white"
-        aria-label="Close modal"
-      >
-        ✕
-      </button>
-    </div>
+              {/* Trip Info Form */}
+              <form className="p-6 space-y-6">
+                <div className="flex flex-col gap-6 xl:flex-row">
+                  <InputField
+                    type={"text"}
+                    label="Origin"
+                    value={trip.origin}
+                    onChange={(e) => setTrip({ ...trip, origin: e.target.value })}
+                    disabled={userRole == "Driver" ? false : true}
+                  />
+                  <InputField
+                    type={"text"}
+                    label="Destination"
+                    value={trip.destination}
+                    onChange={(e) => setTrip({ ...trip, destination: e.target.value })}
+                    disabled={userRole == "Driver" ? false : true}
+                  />
+                </div>
 
-    {/* Trip Info Form */}
-    <form className="p-6 space-y-6">
-      <div className="flex flex-col gap-6 xl:flex-row">
-        <InputField
-          type={"text"}
-          label="Origin"
-          value={trip.origin}
-          onChange={(e) => setTrip({ ...trip, origin: e.target.value })}
-          disabled={userRole == "Driver" ? false : true}
-        />
-        <InputField
-          type={"text"}
-          label="Destination"
-          value={trip.destination}
-          onChange={(e) => setTrip({ ...trip, destination: e.target.value })}
-          disabled={userRole == "Driver" ? false : true}
-        />
-      </div>
+                <div className="flex flex-col gap-6 xl:flex-row">
+                <div className="w-full xl:w-1/2">
+                  <button
+                    type="button"
+                    onClick={handleStartTime}
+                    className={`w-full rounded-md border border-meta-3 py-3 px-6 text-center font-medium text-meta-3 hover:bg-opacity-90 ${
+                      userRole !== 'Driver' || startTimeDisabled == true
+                        ? 'cursor-not-allowed opacity-50 bg-gray-300 text-gray-700'
+                        : 'border border-meta-3 text-meta-3 hover:bg-opacity-90'
+                    }`}
+                    disabled={userRole == "Driver" && startTimeDisabled == false ? false : true}
+                  >
+                    Set Start Time
+                  </button>
+                  {trip.startTimeStamp && (
+                    <p className="mt-2 text-sm text-gray-600 dark:text-gray-300">
+                      Start: {new Date(trip.startTimeStamp).toLocaleString()}
+                    </p>
+                  )}
+            </div>
 
-      <div className="flex flex-col gap-6 xl:flex-row">
-      <div className="w-full xl:w-1/2">
-        <button
-          type="button"
-          onClick={handleStartTime}
-          className={`w-full rounded-md border border-meta-3 py-3 px-6 text-center font-medium text-meta-3 hover:bg-opacity-90 ${
-            userRole !== 'Driver' || startTimeDisabled == true
-              ? 'cursor-not-allowed opacity-50 bg-gray-300 text-gray-700'
-              : 'border border-meta-3 text-meta-3 hover:bg-opacity-90'
-          }`}
-          disabled={userRole == "Driver" && startTimeDisabled == false ? false : true}
-        >
-          Set Start Time
-        </button>
-        {trip.startTimeStamp && (
-          <p className="mt-2 text-sm text-gray-600 dark:text-gray-300">
-            Start: {new Date(trip.startTimeStamp).toLocaleString()}
-          </p>
+            <div className="w-full xl:w-1/2">
+              <button
+                type="button"
+                onClick={handleEndTime}
+                className={`w-full rounded-md border border-red py-3 px-6 text-center font-medium text-red hover:bg-opacity-90 ${
+                  userRole !== 'Driver'
+                    ? 'cursor-not-allowed opacity-50 bg-gray-300 text-gray-700'
+                    : 'border border-red text-red hover:bg-opacity-90'
+                }`}
+                disabled={userRole == "Driver" ? false : true}
+              >
+                Set End Time
+              </button>
+              {trip.endTimeStamp && (
+                <p className="mt-2 text-sm text-gray-600 dark:text-gray-300">
+                  End: {new Date(trip.endTimeStamp).toLocaleString()}
+                </p>
+              )}
+            </div>
+          </div>
+              </form>
+
+              {/* Financial Details */}
+              <div className="px-6">
+                <h3 className="text-lg font-semibold text-black dark:text-white mb-4">
+                  Financial Details
+                </h3>
+              </div>
+              <form className="px-6 pb-6 space-y-6">
+                <div className="flex flex-col gap-6 xl:flex-row">
+                  <InputField
+                    type="number"
+                    label="Pay per mile"
+                    value={trip.payPerMile}
+                    onChange={(e) => setTrip({ ...trip, payPerMile: e.target.value })}
+                    disabled={userRole == "Admin" ? false : true}
+                  />
+                  <InputField
+                    type="number"
+                    label="Mileage"
+                    value={trip.mileage}
+                    onChange={(e) => setTrip({ ...trip, mileage: e.target.value })}
+                    disabled={userRole == "Admin" ? false : true}
+                  />
+                </div>
+
+                <div className="flex flex-col gap-6 xl:flex-row">
+                  <InputField
+                    type="number"
+                    label="Driver's Pay"
+                    value={
+                      parseFloat(trip.payPerMile || 0) * parseFloat(trip.mileage || 0)
+                    }
+                    onChange={(e)=>console.log("onchange driver's pay")}
+                    disabled
+                  />
+                  <InputField
+                    type="number"
+                    label="Other Pay"
+                    value={trip.otherPay}
+                    onChange={(e) =>
+                      setTrip({ ...trip, otherPay: e.target.value })
+                    }
+                    disabled={userRole == "Admin" ? false : true}
+                  />
+                </div>
+                <div className="flex flex-col gap-6 xl:flex-row">
+                <InputField
+                  type="number"
+                  label="Gross Income"
+                  value={trip.grossIncome}
+                  onChange={(e) => setTrip({ ...trip, grossIncome: e.target.value })}
+                  disabled={userRole == "Admin" ? false : true}
+                />
+
+                <InputField
+                  type="number"
+                  label="Additional Income"
+                  value={trip.additionalIncome}
+                  onChange={(e) =>
+                    setTrip({ ...trip, additionalIncome: e.target.value })
+                  }
+                  disabled={userRole == "Admin" ? false : true}
+                />
+                </div>
+                <div className="flex flex-col gap-6 xl:flex-row">
+                <InputField
+                  type="number"
+                  label="Total Expense"
+                  value={trip.totalExpenses}
+                  onChange={(e)=> {console.log("change")}}
+                  disabled={true}
+                />
+
+                <InputField
+                  type="number"
+                  label="Balance"
+                  value={trip.balance}
+                  onChange={(e)=> {console.log("change balance")}}
+                  disabled
+                />
+                </div>
+                <div className="flex flex-col gap-6 xl:flex-row">
+                <InputField
+                  type="number"
+                  label="Cost per mile"
+                  value={trip.costPerMile}
+                  onChange={(e)=> {console.log("change")}}
+                  disabled={true}
+                />
+                </div>
+              </form>
+
+              {/* Driver Costs */}
+              <div className="px-6">
+                <h3 className="text-lg font-semibold text-black dark:text-white mb-4">
+                  Driver Costs
+                </h3>
+              </div>
+              <div className="px-6 pb-6 space-y-6">
+                <InputField
+                  type="number"
+                  label="Fuel Cost"
+                  value={trip.fuelCost}
+                  onChange={(e) => setTrip({ ...trip, fuelCost: e.target.value })}
+                  disabled={userRole == "Driver" ? false : true}
+                />
+              <div className="flex items-center justify-between mb-4.5">
+                <label className="mb-2.5 block text-black dark:text-white">
+                Additional Costs<span className="text-meta-1">*</span>
+                </label>
+                <button
+                  type="button"
+                  onClick={addAdditionalCost}
+                  className={`rounded bg-primary px-4 py-1.5 text-sm text-white hover:bg-opacity-90 ${
+                    userRole !== 'Driver'
+                      ? 'cursor-not-allowed opacity-50 bg-gray-300 text-gray-700'
+                      : 'bg-blue-500 hover:bg-blue-600 text-white'
+                  }`}
+                  disabled={userRole == "Driver" ? false : true}
+                >
+                  + Add
+                </button>
+              </div>
+                {/* Dynamic Additional Costs */}
+                {trip.additionalCosts?.map((elem, idx) => (
+                  <div
+                    key={elem._id || idx}
+                    className="relative group mb-4.5 flex flex-col gap-6 xl:flex-row border-b border-dashed pb-4"
+                  >
+                    <div className="w-full xl:w-1/2">
+                      <label className="block mb-2 text-black dark:text-white">
+                        Category
+                      </label>
+                      <select
+                        name={`category${idx}`}
+                        value={elem.category}
+                        onChange={(e) =>
+                          updateAdditionalCost(idx, 'category', e.target.value)
+                        }
+                        className={`relative z-20 w-full appearance-none rounded border border-stroke bg-transparent py-2 px-5 outline-none transition focus:border-primary active:border-primary dark:border-form-strokedark dark:bg-form-input dark:focus:border-primary disabled:cursor-default disabled:bg-whiter ${
+                          isOptionSelected ? 'text-black dark:text-white' : ''
+                        }`}
+                        disabled={userRole == "Driver" ? false : true}
+                      >
+                        <option value="" >
+                          Select category
+                        </option>
+                        <option value="Toll">Toll</option>
+                        <option value="Maintenance">Maintenance</option>
+                        <option value="Food">Food</option>
+                        <option value="Parking">Parking</option>
+                        <option value="Miscellaneous">Miscellaneous</option>
+                      </select>
+                    </div>
+
+                    <div className="w-full xl:w-1/2">
+                      <label className="block mb-2 text-black dark:text-white">Cost</label>
+                      <input
+                        type="number"
+                        name={`cost${idx}`}
+                        value={elem.amount}
+                        onChange={(e) =>
+                          updateAdditionalCost(idx, 'amount', e.target.value)
+                        }
+                        disabled={userRole == "Driver" ? false : true}
+                        className="w-full rounded border border-stroke py-2 px-4 bg-transparent dark:bg-form-input text-black outline-none focus:border-primary dark:border-form-strokedark dark:text-white disabled:cursor-default disabled:bg-whiter"
+                      />
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => removeAdditionalCost(idx)}
+                      className="absolute top-0 right-0 text-red-500 hover:text-red-700 hidden group-hover:block opacity-0 group-hover:opacity-100 sm:opacity-100 transition"
+                      title="Remove"
+                      disabled={userRole == "Driver" ? false : true}
+                    >
+                      ✕
+                    </button>
+                  </div>
+                ))}
+
+                <button
+                  type="button"
+                  onClick={createNewTrip}
+                  className="w-full rounded bg-primary p-3 font-medium text-white hover:bg-opacity-90"
+                >
+                  Save
+                </button>
+              </div>
+            </div>
+          </div>
+        </>
         )}
-  </div>
-
-  <div className="w-full xl:w-1/2">
-    <button
-      type="button"
-      onClick={handleEndTime}
-      className={`w-full rounded-md border border-red py-3 px-6 text-center font-medium text-red hover:bg-opacity-90 ${
-        userRole !== 'Driver'
-          ? 'cursor-not-allowed opacity-50 bg-gray-300 text-gray-700'
-          : 'border border-red text-red hover:bg-opacity-90'
-      }`}
-      disabled={userRole == "Driver" ? false : true}
-    >
-      Set End Time
-    </button>
-    {trip.endTimeStamp && (
-      <p className="mt-2 text-sm text-gray-600 dark:text-gray-300">
-        End: {new Date(trip.endTimeStamp).toLocaleString()}
-      </p>
-    )}
-  </div>
-</div>
-    </form>
-
-    {/* Financial Details */}
-    <div className="px-6">
-      <h3 className="text-lg font-semibold text-black dark:text-white mb-4">
-        Financial Details
-      </h3>
-    </div>
-    <form className="px-6 pb-6 space-y-6">
-      <div className="flex flex-col gap-6 xl:flex-row">
-        <InputField
-          type="number"
-          label="Pay per mile"
-          value={trip.payPerMile}
-          onChange={(e) => setTrip({ ...trip, payPerMile: e.target.value })}
-          disabled={userRole == "Admin" ? false : true}
-        />
-        <InputField
-          type="number"
-          label="Mileage"
-          value={trip.mileage}
-          onChange={(e) => setTrip({ ...trip, mileage: e.target.value })}
-          disabled={userRole == "Admin" ? false : true}
-        />
-      </div>
-
-      <div className="flex flex-col gap-6 xl:flex-row">
-        <InputField
-          type="number"
-          label="Driver's Pay"
-          value={
-            parseFloat(trip.payPerMile || 0) * parseFloat(trip.mileage || 0)
-          }
-          onChange={(e)=>console.log("onchange driver's pay")}
-          disabled
-        />
-        <InputField
-          type="number"
-          label="Other Pay"
-          value={trip.additionalIncome}
-          onChange={(e) =>
-            setTrip({ ...trip, additionalIncome: e.target.value })
-          }
-          disabled={userRole == "Admin" ? false : true}
-        />
-      </div>
-      <div className="flex flex-col gap-6 xl:flex-row">
-      <InputField
-        type="number"
-        label="Gross Income"
-        value={trip.grossIncome}
-        onChange={(e) => setTrip({ ...trip, grossIncome: e.target.value })}
-        disabled={userRole == "Admin" ? false : true}
-      />
-
-      <InputField
-        type="number"
-        label="Additional Income"
-        value={trip.additionalIncome}
-        onChange={(e) =>
-          setTrip({ ...trip, additionalIncome: e.target.value })
-        }
-        disabled={userRole == "Admin" ? false : true}
-      />
-      </div>
-      <div className="flex flex-col gap-6 xl:flex-row">
-      <InputField
-        type="number"
-        label="Total Expense"
-        value={trip.totalExpenses}
-        onChange={(e)=> {console.log("change")}}
-        disabled={true}
-      />
-
-      <InputField
-        type="number"
-        label="Balance"
-        value={trip.balance}
-        onChange={(e)=> {console.log("change balance")}}
-        disabled
-      />
-      </div>
-    </form>
-
-    {/* Driver Costs */}
-    <div className="px-6">
-      <h3 className="text-lg font-semibold text-black dark:text-white mb-4">
-        Driver Costs
-      </h3>
-    </div>
-    <div className="px-6 pb-6 space-y-6">
-      <InputField
-        type="number"
-        label="Fuel Cost"
-        value={trip.fuelCost}
-        onChange={(e) => setTrip({ ...trip, fuelCost: e.target.value })}
-        disabled={userRole == "Driver" ? false : true}
-      />
-    <div className="flex items-center justify-between mb-4.5">
-      <label className="mb-2.5 block text-black dark:text-white">
-      Additional Costs<span className="text-meta-1">*</span>
-      </label>
-      <button
-        type="button"
-        onClick={addAdditionalCost}
-        className={`rounded bg-primary px-4 py-1.5 text-sm text-white hover:bg-opacity-90 ${
-          userRole !== 'Driver'
-            ? 'cursor-not-allowed opacity-50 bg-gray-300 text-gray-700'
-            : 'bg-blue-500 hover:bg-blue-600 text-white'
-        }`}
-        disabled={userRole == "Driver" ? false : true}
-      >
-        + Add
-      </button>
-    </div>
-      {/* Dynamic Additional Costs */}
-      {trip.additionalCosts?.map((elem, idx) => (
-        <div
-          key={elem._id || idx}
-          className="relative group mb-4.5 flex flex-col gap-6 xl:flex-row border-b border-dashed pb-4"
-        >
-          <div className="w-full xl:w-1/2">
-            <label className="block mb-2 text-black dark:text-white">
-              Category
-            </label>
-            <select
-              name={`category${idx}`}
-              value={elem.category}
-              onChange={(e) =>
-                updateAdditionalCost(idx, 'category', e.target.value)
-              }
-              className={`relative z-20 w-full appearance-none rounded border border-stroke bg-transparent py-2 px-5 outline-none transition focus:border-primary active:border-primary dark:border-form-strokedark dark:bg-form-input dark:focus:border-primary disabled:cursor-default disabled:bg-whiter ${
-                isOptionSelected ? 'text-black dark:text-white' : ''
-              }`}
-              disabled={userRole == "Driver" ? false : true}
-            >
-              <option value="" >
-                Select category
-              </option>
-              <option value="Toll">Toll</option>
-              <option value="Maintenance">Maintenance</option>
-              <option value="Food">Food</option>
-              <option value="Parking">Parking</option>
-              <option value="Miscellaneous">Miscellaneous</option>
-            </select>
-          </div>
-
-          <div className="w-full xl:w-1/2">
-            <label className="block mb-2 text-black dark:text-white">Cost</label>
-            <input
-              type="number"
-              name={`cost${idx}`}
-              value={elem.amount}
-              onChange={(e) =>
-                updateAdditionalCost(idx, 'amount', e.target.value)
-              }
-              disabled={userRole == "Driver" ? false : true}
-              className="w-full rounded border border-stroke py-2 px-4 bg-transparent dark:bg-form-input text-black outline-none focus:border-primary dark:border-form-strokedark dark:text-white disabled:cursor-default disabled:bg-whiter"
-            />
-          </div>
-          <button
-            type="button"
-            onClick={() => removeAdditionalCost(idx)}
-            className="absolute top-0 right-0 text-red-500 hover:text-red-700 hidden group-hover:block opacity-0 group-hover:opacity-100 sm:opacity-100 transition"
-            title="Remove"
-            disabled={userRole == "Driver" ? false : true}
-          >
-            ✕
-          </button>
-        </div>
-      ))}
-
-      <button
-        type="button"
-        onClick={createNewTrip}
-        className="w-full rounded bg-primary p-3 font-medium text-white hover:bg-opacity-90"
-      >
-        Save
-      </button>
-    </div>
-  </div>
-</div>
-
-
+        {isModalOpenDel && (
+        <>
+        {/* Background Overlay */}
+        <div className="fixed inset-0 bg-black bg-opacity-50 z-40"> </div>
         <div
           id="delete-user-modal"
           tabIndex="-1"
           aria-hidden="true"
-          className="hidden overflow-x-hidden fixed top-0 right-0 left-0 z-50 justify-center items-center w-full xl:w-1/2 md:inset-0 h-[calc(100%-1rem)] max-h-full"
+          className=" overflow-x-hidden fixed top-0 right-0 left-0 z-50 justify-center items-center w-full xl:w-1/2 md:inset-0 h-[calc(100%-1rem)] max-h-full"
           style={{ left: '30%', top: '5%', zIndex: '9999' }}
         >
           <div className="w-full flex flex-col bg-white border shadow-sm rounded-xl pointer-events-auto dark:bg-neutral-800 dark:border-neutral-700 dark:shadow-neutral-700/70">
@@ -1166,7 +903,7 @@ const Trips = () => {
             </div>
             <div className="p-4">
               <p className="mt-1 text-gray-800 dark:text-neutral-400">
-                Are you sure you want to delete this user?
+                Are you sure you want to delete this trip?
               </p>
             </div>
             <div className="flex justify-end items-center gap-x-2 py-3 px-4 border-t dark:border-neutral-700">
@@ -1180,7 +917,7 @@ const Trips = () => {
               </button>
               <button
                 type="button"
-                // onClick={()=>deleteParticularUser()}
+                onClick={()=>handleDelete(tripId)}
                 className="py-2 px-3 inline-flex items-center gap-x-2 text-sm font-medium rounded-lg border border-transparent bg-blue-600 text-white hover:bg-blue-700 focus:outline-none focus:bg-blue-700 disabled:opacity-50 disabled:pointer-events-none"
               >
                 Delete
@@ -1188,6 +925,7 @@ const Trips = () => {
             </div>
           </div>
         </div>
+        </>)}
       </DefaultLayout>
     </>
   );

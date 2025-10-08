@@ -81,7 +81,7 @@ const Tables = () => {
       if(isEdit){
         const result = await dispatch(editDriver({ name, email,contactNumber ,truckNumberPlate, driverId }));
         if (result.meta.requestStatus === 'fulfilled') {
-          toast.error('Driver details were edited successfully!');
+          toast.success('Driver details were edited successfully!');
           getAllDrivers()
           setIsEdit(false)
           setName('')
@@ -89,8 +89,9 @@ const Tables = () => {
           setContactNumber('')
           setTruckNumberPlate('')
           setDriverId('')
-          $("#driver-details-modal").removeClass("show");
-          $("#driver-details-modal").addClass("hidden");
+          // $("#driver-details-modal").removeClass("show");
+          // $("#driver-details-modal").addClass("hidden");
+          closePopup()
         } else {
         if(result.payload.status == 403){
           toast.error("You're not authorized to perform this action");
@@ -109,15 +110,15 @@ const Tables = () => {
           setEmail('')
           setContactNumber('')
           setTruckNumberPlate('')
-          $("#driver-details-modal").removeClass("show");
-          $("#driver-details-modal").addClass("hidden");
+          // $("#driver-details-modal").removeClass("show");
+          // $("#driver-details-modal").addClass("hidden");
+          closePopup()
         } else {
         if(result.payload.status == 403){
           toast.error("You're not authorized to perform this action");
         } else {
           toast.error('Driver creation failed!');
         }
-        
       }
       }
     }
@@ -153,9 +154,10 @@ const Tables = () => {
       if (result.meta.requestStatus === 'fulfilled') {
         toast.success('Driver deleted successfully!');
         getAllDrivers()
-        setDriverId('')
-        $("#delete-driver-modal").removeClass("show");
-        $("#delete-driver-modal").addClass("hidden");
+        // setDriverId('')
+        // $("#delete-driver-modal").removeClass("show");
+        // $("#delete-driver-modal").addClass("hidden");
+        closeDeletePopup()
       } else {
         if(result.payload.status == 403){
           toast.error("You're not authorized to perform this action");

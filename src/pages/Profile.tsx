@@ -19,7 +19,6 @@ import { toast } from 'react-toastify';
 const Profile = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch<AppDispatch>();
-  const myRef = useRef();
 
   const [packageData, setPackageData] = useState([]);
   const [name, setName] = useState('')
@@ -92,8 +91,9 @@ const Profile = () => {
         setPassword('')
         setRole('')
         setUserId('')
-        $("#crud-modal").removeClass("show");
-        $("#crud-modal").addClass("hidden");
+        // $("#crud-modal").removeClass("show");
+        // $("#crud-modal").addClass("hidden");
+        closePopup()
       } else {
         if(result.payload.status == 403){
           toast.error("You're not authorized to perform this action");
@@ -111,8 +111,9 @@ const Profile = () => {
         setEmail('')
         setPassword('')
         setRole('')
-        $("#crud-modal").removeClass("show");
-        $("#crud-modal").addClass("hidden");
+        // $("#crud-modal").removeClass("show");
+        // $("#crud-modal").addClass("hidden");
+        closePopup()
       } else {
         if(result.payload.status == 403){
           toast.error("You're not authorized to perform this action");
@@ -167,9 +168,10 @@ const Profile = () => {
     if (result.meta.requestStatus === 'fulfilled') {
       toast.success('User deleted successfully!');
       getAllUsers()
-      setUserId('')
-      $("#delete-user-modal").removeClass("show");
-      $("#delete-user-modal").addClass("hidden");
+      // setUserId('')
+      // $("#delete-user-modal").removeClass("show");
+      // $("#delete-user-modal").addClass("hidden");
+      closeDeletePopup()
     } else {
         if(result.payload.status == 403){
           toast.error("You're not authorized to perform this action");
