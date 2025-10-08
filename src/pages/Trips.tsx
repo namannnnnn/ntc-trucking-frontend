@@ -1,7 +1,3 @@
-import Breadcrumb from '../components/Breadcrumbs/Breadcrumb';
-import TableOne from '../components/Tables/TableOne';
-import TableThree from '../components/Tables/TableThree';
-import TableTwo from '../components/Tables/TableTwo';
 import { Link, useNavigate } from 'react-router-dom';
 import DefaultLayout from '../layout/DefaultLayout';
 import { useDispatch } from 'react-redux';
@@ -10,20 +6,15 @@ import { AppDispatch } from '../store';
 import { fetchTrips } from '../features/fetchTripsSlice';
 import { Trip } from '../types/trips';
 import { createTrip } from '../features/createTripSlice';
-import { getUser } from '../features/getUserSlice';
-import { editUser } from '../features/editUserSlice';
-import { deleteUser } from '../features/deleteUserSlice';
 import $ from 'jquery';
 
 const Trips = () => {
   const [origin, setOrigin] = useState('');
   const [destination, setDestination] = useState('');
-  const [role, setRole] = useState<string>('');
-  const [password, setPassword] = useState('');
 
-  const [isOptionSelected, setIsOptionSelected] = useState<boolean>(false);
   const [isEdit, setIsEdit] = useState<boolean>(false);
-  const [userId, setUserId] = useState<string>('');
+  const [trip, setTrip] = useState({});
+  const [isOptionSelected, setIsOptionSelected] = useState<boolean>(false);
 
   useEffect(() => {
     if (
@@ -34,9 +25,30 @@ const Trips = () => {
       navigate('auth/signin');
     }
   }, []);
-
-  console.log(localStorage.getItem('token'));
-
+  const InputField = ({ label, value, onChange, disabled = false }) => (
+    <div className="w-full xl:w-1/2">
+      <label className="mb-2 block text-black dark:text-white">
+        {label} <span className="text-meta-1">*</span>
+      </label>
+      <input
+        type="text"
+        value={value}
+        onChange={onChange}
+        disabled={disabled}
+        className="w-full rounded border border-stroke bg-transparent py-3 px-5 text-black dark:border-form-strokedark dark:bg-form-input dark:text-white focus:border-primary outline-none"
+      />
+    </div>
+  );
+  
+  const StyledButton = ({ label, color }) => (
+    <button
+      type="button"
+      className={`w-full rounded-md border ${color} py-3 px-6 text-center font-medium hover:bg-opacity-90`}
+    >
+      {label}
+    </button>
+  );
+  
   const openPopup = () => {
     console.log('Inside open popup');
     $('#crud-modal2').removeClass('hidden');
@@ -56,7 +68,12 @@ const Trips = () => {
     // setRole('')
   };
 
+  const changeTextColor = () => {
+    setIsOptionSelected(true);
+  };
+
   const createNewTrip = async () => {
+    console.log("create", isEdit)
     if (isEdit) {
       const result = await dispatch(createTrip({ origin, destination }));
       if (result.meta.requestStatus === 'fulfilled') {
@@ -64,36 +81,29 @@ const Trips = () => {
         setIsEdit(false);
         setOrigin('');
         setDestination('');
-        setPassword('');
-        setRole('');
         $('#crud-modal-edit').removeClass('show');
         $('#crud-modal-edit').addClass('hidden');
         // }
-      } else {
-        console.log('inside');
-        const result = await dispatch(createTrip({ origin, destination }));
-        if (result.meta.requestStatus === 'fulfilled') {
-          getAllTrips();
-          setIsEdit(false);
-          setOrigin('');
-          setDestination('');
-          $('#crud-modal2').removeClass('show');
-          $('#crud-modal2').addClass('hidden');
-        }
+      } 
+    }else {
+      console.log('inside');
+      const result = await dispatch(createTrip({ origin, destination }));
+      if (result.meta.requestStatus === 'fulfilled') {
+        getAllTrips();
+        setIsEdit(false);
+        setOrigin('');
+        setDestination('');
+        $('#crud-modal2').removeClass('show');
+        $('#crud-modal2').addClass('hidden');
       }
     }
   };
 
-  const openEditUserPopup = (user: any) => {
-    // setName(user.name)
-    // setEmail(user.email)
-    // setPassword(user.password)
-    console.log('inside open edit user pop up');
-    // setRole(user.role.name)
+  const openEditTripPopup = (trip: any) => {
     $('#crud-modal-edit').removeClass('hidden');
     $('#crud-modal-edit').addClass('show');
     setIsEdit(true);
-    setUserId(user['_id']);
+    setTrip(trip);
   };
 
   const openDeleteUserPopup = (userId: any) => {
@@ -119,10 +129,53 @@ const Trips = () => {
 
   const getAllTrips = async () => {
     const result = await dispatch(fetchTrips());
+    console.log(result, "trips")
     if (result.meta.requestStatus === 'fulfilled') {
       console.log('fulfilled');
       setTripData(result.payload);
     }
+  };
+
+  const handleStartTime = () => {
+    setTrip((prev) => ({
+      ...prev,
+      startTime: new Date().toISOString(),
+    }));
+  };
+  
+  const handleEndTime = () => {
+    setTrip((prev) => ({
+      ...prev,
+      endTime: new Date().toISOString(),
+    }));
+  };
+
+  const addAdditionalCost = () => {
+    setTrip((prevTrip) => ({
+      ...prevTrip,
+      additionalCosts: [
+        ...prevTrip.additionalCosts,
+        {
+          _id: Date.now(), // temporary unique ID
+          category: '',
+          amount: '',
+        },
+      ],
+    }));
+  };
+
+  const updateAdditionalCost = (index, field, value) => {
+    setTrip((prevTrip) => {
+      const updatedCosts = [...prevTrip.additionalCosts];
+      updatedCosts[index] = {
+        ...updatedCosts[index],
+        [field]: value,
+      };
+      return {
+        ...prevTrip,
+        additionalCosts: updatedCosts,
+      };
+    });
   };
 
   return (
@@ -163,7 +216,10 @@ const Trips = () => {
                       Destination
                     </th>
                     <th className="py-4 px-4 font-medium text-black dark:text-white">
-                      Date
+                      Start Time
+                    </th>
+                    <th className="py-4 px-4 font-medium text-black dark:text-white">
+                      End Time
                     </th>
                     <th className="py-4 px-4 font-medium text-black dark:text-white">
                       Actions
@@ -190,14 +246,14 @@ const Trips = () => {
                       </td>
                       <td className="border-b border-[#eee] py-5 px-4 dark:border-strokedark">
                         <p className="text-black dark:text-white">
-                          {new Intl.DateTimeFormat('en-US', {
-                            year: 'numeric',
-                            month: '2-digit',
-                            day: '2-digit',
-                            hour: '2-digit',
-                            minute: '2-digit',
-                            second: '2-digit',
-                          }).format(packageItem.date)}
+                          {packageItem.startTime ? new Date(packageItem.startTime).toLocaleString() : "-"}
+                          
+                        </p>
+                      </td>
+                      <td className="border-b border-[#eee] py-5 px-4 dark:border-strokedark">
+                        <p className="text-black dark:text-white">
+                          {packageItem.endTime ? new Date(packageItem.endTime).toLocaleString() : "-"}
+                          
                         </p>
                       </td>
                       <td className="border-b border-[#eee] py-5 px-4 dark:border-strokedark">
@@ -205,7 +261,7 @@ const Trips = () => {
                           <button
                             className="hover:text-primary"
                             type="button"
-                            onClick={() => openEditUserPopup(packageItem)}
+                            onClick={() => openEditTripPopup(packageItem)}
                           >
                             <svg
                               width="18"
@@ -296,7 +352,7 @@ const Trips = () => {
           id="crud-modal2"
           tabIndex="-1"
           aria-hidden="true"
-          className="hidden overflow-y-auto overflow-x-hidden fixed top-0 right-0 left-0 z-50 justify-center items-center w-full xl:w-1/2 md:inset-0 h-[calc(100%-1rem)] max-h-full"
+          className="hidden overflow-x-hidden fixed top-0 right-0 left-0 z-50 justify-center items-center w-full xl:w-1/2 md:inset-0 h-[calc(100%-1rem)] max-h-full"
           style={{ left: '30%', top: '15%' }}
         >
           <div className="rounded-sm border border-stroke bg-white shadow-default dark:border-strokedark dark:bg-boxdark">
@@ -370,15 +426,15 @@ const Trips = () => {
           </div>
         </div>
 
-        <div
+        {/* <div
           id="crud-modal-edit"
           tabIndex="-1"
           aria-hidden="true"
-          className="hidden  overflow-y-auto overflow-x-hidden fixed top-0 right-0 left-0 z-50 justify-center items-center w-full xl:w-1/2 md:inset-0 h-[calc(100%-1rem)] max-h-full "
+          className="hidden  overflow-x-hidden fixed top-0 right-0 left-0 z-50 justify-center items-center w-full xl:w-1/2 md:inset-0 h-[calc(100%-1rem)] max-h-full "
           style={{ left: '30%', top: '15%'}}
           
         >
-          <div className="rounded-sm border border-stroke bg-white shadow-default dark:border-strokedark dark:bg-boxdark "style={{ overflowY:'scroll' }} >
+          <div className="rounded-sm border border-stroke bg-white shadow-default dark:border-strokedark dark:bg-boxdark ">
             <div className="flex border-b border-stroke py-4 px-6.5 dark:border-strokedark">
               <h3 className="font-medium text-black dark:text-white">
                 {isEdit == true ? 'Edit Trip' : 'Create Trip'}
@@ -416,7 +472,7 @@ const Trips = () => {
                     </label>
                     <input
                       type="text"
-                      value={origin}
+                      value={trip.origin}
                       placeholder="Enter the origin of the trip"
                       className="w-full rounded border-[1.5px] border-stroke bg-transparent py-3 px-5 text-black outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:text-white dark:focus:border-primary"
                       onChange={(e) => setOrigin(e.target.value)}
@@ -429,7 +485,7 @@ const Trips = () => {
                     </label>
                     <input
                       type="text"
-                      value={destination}
+                      value={trip.destination}
                       placeholder="Enter the destination of the trip"
                       className="w-full rounded border-[1.5px] border-stroke bg-transparent py-3 px-5 text-black outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:text-white dark:focus:border-primary"
                       onChange={(e) => setDestination(e.target.value)}
@@ -454,21 +510,13 @@ const Trips = () => {
                   End Time
                 </Link></div>
                 </div>
-                
-                
-                {/* <button
-                  type="button"
-                  onClick={() => createNewTrip()}
-                  className="flex w-full justify-center rounded bg-primary p-3 font-medium text-gray hover:bg-opacity-90"
-                >
-                  Save
-                </button> */}
+     
               </div>
             </form>
             <h3 className="pl-6.5"> Financial Details </h3>
 
             <form>
-              <div className="p-6.5" style={{ overflowY:'scroll' }}>
+              <div className="p-6.5">
                 <div className="mb-4.5 flex flex-col gap-6 xl:flex-row">
                   <div className="w-full xl:w-1/2">
                     <label className="mb-2.5 block text-black dark:text-white">
@@ -476,7 +524,7 @@ const Trips = () => {
                     </label>
                     <input
                       type="text"
-                      value={origin}
+                      value={trip.payPerMile}
                       placeholder="Enter the origin of the trip"
                       className="w-full rounded border-[1.5px] border-stroke bg-transparent py-3 px-5 text-black outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:text-white dark:focus:border-primary"
                       onChange={(e) => setOrigin(e.target.value)}
@@ -489,14 +537,40 @@ const Trips = () => {
                     </label>
                     <input
                       type="text"
-                      value={destination}
+                      value={trip.mileage}
                       placeholder="Enter the destination of the trip"
                       className="w-full rounded border-[1.5px] border-stroke bg-transparent py-3 px-5 text-black outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:text-white dark:focus:border-primary"
                       onChange={(e) => setDestination(e.target.value)}
                     />
                   </div>
+                </div>
+                <div className="mb-4.5 flex flex-col gap-6 xl:flex-row">
+                  <div className="w-full xl:w-1/2">
+                    <label className="mb-2.5 block text-black dark:text-white">
+                      Driver's Pay<span className="text-meta-1">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      value={(trip.payPerMile)*(trip.mileage)}
+                      placeholder="Enter the origin of the trip"
+                      className="w-full rounded border-[1.5px] border-stroke bg-transparent py-3 px-5 text-black outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:text-white dark:focus:border-primary"
+                      // onChange={(e) => setOrigin(e.target.value)}
+                      disabled={true}
+                    />
+                  </div>
 
-                 
+                  <div className="w-full xl:w-1/2">
+                    <label className="mb-2.5 block text-black dark:text-white">
+                      Other Pay <span className="text-meta-1">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      value={trip.additionalIncome}
+                      placeholder="Enter the destination of the trip"
+                      className="w-full rounded border-[1.5px] border-stroke bg-transparent py-3 px-5 text-black outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:text-white dark:focus:border-primary"
+                      onChange={(e) => setDestination(e.target.value)}
+                    />
+                  </div>
                 </div>
                 <div className="block mb-4.5">
                     <label className="mb-2.5 block text-black dark:text-white">
@@ -504,7 +578,7 @@ const Trips = () => {
                     </label>
                     <input
                       type="text"
-                      value={origin}
+                      value={trip.grossIncome}
                       placeholder="Enter the origin of the trip"
                       className="w-full rounded border-[1.5px] border-stroke bg-transparent py-3 px-5 text-black outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:text-white dark:focus:border-primary"
                       onChange={(e) => setOrigin(e.target.value)}
@@ -516,67 +590,340 @@ const Trips = () => {
                     </label>
                     <input
                       type="text"
-                      value={origin}
+                      value={trip.additionalIncome}
                       placeholder="Enter the origin of the trip"
                       className="w-full rounded border-[1.5px] border-stroke bg-transparent py-3 px-5 text-black outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:text-white dark:focus:border-primary"
                       onChange={(e) => setOrigin(e.target.value)}
                     />
                   </div>
-
-                
               </div>
             </form>
             <h3 className="pl-6.5"> Driver Costs </h3>
-            <div className="p-6.5" style={{ overflowY:'scroll' }}>
-                
+            <div className="p-6.5">
+              <div className="block mb-4.5">
+                  <label className="mb-2.5 block text-black dark:text-white">
+                  Fuel Cost<span className="text-meta-1">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    value={trip.fuelCost}
+                    placeholder="Enter the origin of the trip"
+                    className="w-full rounded border-[1.5px] border-stroke bg-transparent py-3 px-5 text-black outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:text-white dark:focus:border-primary"
+                    onChange={(e) => setOrigin(e.target.value)}
+                  />
+                </div>
                 <div className="block mb-4.5">
-                    <label className="mb-2.5 block text-black dark:text-white">
-                    Fuel Cost<span className="text-meta-1">*</span>
-                    </label>
-                    <input
-                      type="text"
-                      value={origin}
-                      placeholder="Enter the origin of the trip"
-                      className="w-full rounded border-[1.5px] border-stroke bg-transparent py-3 px-5 text-black outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:text-white dark:focus:border-primary"
-                      onChange={(e) => setOrigin(e.target.value)}
-                    />
-                  </div>
-                  <div className="block mb-4.5">
-                    <label className="mb-2.5 block text-black dark:text-white">
-                    Additional Costs<span className="text-meta-1">*</span>
-                    </label>
-                    <input
-                      type="text"
-                      value={origin}
-                      placeholder="Enter the origin of the trip"
-                      className="w-full rounded border-[1.5px] border-stroke bg-transparent py-3 px-5 text-black outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:text-white dark:focus:border-primary"
-                      onChange={(e) => setOrigin(e.target.value)}
-                    />
-                  </div>
+                  <label className="mb-2.5 block text-black dark:text-white">
+                  Additional Costs<span className="text-meta-1">*</span>
+                  </label>
+                  {trip.additionalCosts && trip.additionalCosts.map((elem, idx )=>{
+                      return(
+                        <>
+                        <div className="mb-4.5 flex flex-col gap-6 xl:flex-row">
+                          <div className="w-full xl:w-1/2">
+                            <div className="mb-4.5">
+                              <label className="mb-2.5 block text-black dark:text-white">
+                                {' '}
+                                Category{' '}
+                              </label>
 
-                <button
-                  type="button"
-                  onClick={() => createNewTrip()}
-                  className="flex w-full justify-center rounded bg-primary p-3 font-medium text-gray hover:bg-opacity-90"
-                >
-                  Save
-                </button>
-              </div>
-          </div>
+                              <div className="relative z-20 bg-transparent dark:bg-form-input">
+                                  <select
+                                    key={"cat"+ elem._id}
+                                    id={`category` + idx}
+                                    name={`category` + idx}
+                                    value={elem.category}
+                                    onChange={(e) => {
+                                      setOrigin(e.target.value);
+                                      changeTextColor();
+                                    }}
+                                    className={`relative z-20 w-full appearance-none rounded border border-stroke bg-transparent py-3 px-5 outline-none transition focus:border-primary active:border-primary dark:border-form-strokedark dark:bg-form-input dark:focus:border-primary ${
+                                      isOptionSelected ? 'text-black dark:text-white' : ''
+                                    }`}
+                                  >
+                                    <option value="" disabled className="text-body dark:text-bodydark">
+                                      Select your Category
+                                    </option>
+                                    <option value="Toll" className="text-body dark:text-bodydark">
+                                      Toll
+                                    </option>
+                                    <option value="Maintenance" className="text-body dark:text-bodydark">
+                                      Maintenance
+                                    </option>
+                                    <option value="Miscellaneous" className="text-body dark:text-bodydark">
+                                    Miscellaneous
+                                    </option>
+                                  </select>
+                                
+                                <span className="absolute top-1/2 right-4 z-30 -translate-y-1/2">
+                                  <svg
+                                    className="fill-current"
+                                    width="24"
+                                    height="24"
+                                    viewBox="0 0 24 24"
+                                    fill="none"
+                                    xmlns="http://www.w3.org/2000/svg"
+                                  >
+                                    <g opacity="0.8">
+                                      <path
+                                        fillRule="evenodd"
+                                        clipRule="evenodd"
+                                        d="M5.29289 8.29289C5.68342 7.90237 6.31658 7.90237 6.70711 8.29289L12 13.5858L17.2929 8.29289C17.6834 7.90237 18.3166 7.90237 18.7071 8.29289C19.0976 8.68342 19.0976 9.31658 18.7071 9.70711L12.7071 15.7071C12.3166 16.0976 11.6834 16.0976 11.2929 15.7071L5.29289 9.70711C4.90237 9.31658 4.90237 8.68342 5.29289 8.29289Z"
+                                        fill=""
+                                      ></path>
+                                    </g>
+                                  </svg>
+                                </span>
+                              </div>
+                            </div>
+                          </div>
+
+                          <div className="w-full xl:w-1/2">
+                            <label className="mb-2.5 block text-black dark:text-white">
+                              Cost
+                            </label>
+                              <input
+                              key={"cost"+ elem._id}
+                              id={`cost` + idx}
+                              name={`cost` + idx}
+                              type="text"
+                              value={elem.amount}
+                              placeholder="Enter user's password"
+                              className="w-full rounded border-[1.5px] border-stroke bg-transparent py-3 px-5 text-black outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:text-white dark:focus:border-primary"
+                              onChange={(e)=>setPassword(e.target.value)}
+                              />
+                          </div>
+                        </div>
+                        </>
+                      )
+                  })}
+                  
+                </div>
+
+              <button
+                type="button"
+                onClick={() => createNewTrip()}
+                className="flex w-full justify-center rounded bg-primary p-3 font-medium text-gray hover:bg-opacity-90"
+              >
+                Save
+              </button>
+            </div>
+            </div>
           <button
-                  type="button"
-                  onClick={() => createNewTrip()}
-                  className="flex w-full justify-center rounded bg-primary p-3 font-medium text-gray hover:bg-opacity-90"
-                >
-                  Save
-                </button>
+            type="button"
+            onClick={() => createNewTrip()}
+            className="flex w-full justify-center rounded bg-primary p-3 font-medium text-gray hover:bg-opacity-90"
+          >
+            Save
+          </button>
+        </div> */}
+
+<div
+  id="crud-modal-edit"
+  tabIndex={-1}
+  aria-hidden="true"
+  className="hidden overflow-x-hidden fixed inset-0 z-50 flex items-start justify-center overflow-auto bg-black/50 p-4 pt-20"
+>
+  <div className="w-full max-w-4xl rounded-md border border-stroke bg-white shadow-xl dark:border-strokedark dark:bg-boxdark max-h-[90vh] overflow-y-auto custom-scrollbar">
+    {/* Modal Header */}
+    <div className="flex items-center justify-between border-b border-stroke py-4 px-6 dark:border-strokedark">
+      <h3 className="text-lg font-semibold text-black dark:text-white">
+        {isEdit == true ? 'Edit Trip' : 'Create Trip'}
+      </h3>
+      <button
+        onClick={closePopup}
+        className="text-gray-400 hover:text-gray-700 dark:hover:text-white"
+        aria-label="Close modal"
+      >
+        ✕
+      </button>
+    </div>
+
+    {/* Trip Info Form */}
+    <form className="p-6 space-y-6">
+      <div className="flex flex-col gap-6 xl:flex-row">
+        <InputField
+          label="Origin"
+          value={trip.origin}
+          onChange={(e) => setTrip({ ...trip, origin: e.target.value })}
+        />
+        <InputField
+          label="Destination"
+          value={trip.destination}
+          onChange={(e) => setTrip({ ...trip, destination: e.target.value })}
+        />
+      </div>
+
+      <div className="flex flex-col gap-6 xl:flex-row">
+      <div className="w-full xl:w-1/2">
+        <button
+          type="button"
+          onClick={handleStartTime}
+          className="w-full rounded-md border border-meta-3 py-3 px-6 text-center font-medium text-meta-3 hover:bg-opacity-90"
+        >
+          Set Start Time
+        </button>
+        {trip.startTime && (
+          <p className="mt-2 text-sm text-gray-600 dark:text-gray-300">
+            Start: {new Date(trip.startTime).toLocaleString()}
+          </p>
+        )}
+  </div>
+
+  <div className="w-full xl:w-1/2">
+    <button
+      type="button"
+      onClick={handleEndTime}
+      className="w-full rounded-md border border-red py-3 px-6 text-center font-medium text-red hover:bg-opacity-90"
+    >
+      Set End Time
+    </button>
+    {trip.endTime && (
+      <p className="mt-2 text-sm text-gray-600 dark:text-gray-300">
+        End: {new Date(trip.endTime).toLocaleString()}
+      </p>
+    )}
+  </div>
+</div>
+    </form>
+
+    {/* Financial Details */}
+    <div className="px-6">
+      <h3 className="text-lg font-semibold text-black dark:text-white mb-4">
+        Financial Details
+      </h3>
+    </div>
+    <form className="px-6 pb-6 space-y-6">
+      <div className="flex flex-col gap-6 xl:flex-row">
+        <InputField
+          label="Pay per mile"
+          value={trip.payPerMile}
+          onChange={(e) => setTrip({ ...trip, payPerMile: e.target.value })}
+        />
+        <InputField
+          label="Mileage"
+          value={trip.mileage}
+          onChange={(e) => setTrip({ ...trip, mileage: e.target.value })}
+        />
+      </div>
+
+      <div className="flex flex-col gap-6 xl:flex-row">
+        <InputField
+          label="Driver's Pay"
+          value={
+            parseFloat(trip.payPerMile || 0) * parseFloat(trip.mileage || 0)
+          }
+          disabled
+        />
+        <InputField
+          label="Other Pay"
+          value={trip.additionalIncome}
+          onChange={(e) =>
+            setTrip({ ...trip, additionalIncome: e.target.value })
+          }
+        />
+      </div>
+
+      <InputField
+        label="Gross Income"
+        value={trip.grossIncome}
+        onChange={(e) => setTrip({ ...trip, grossIncome: e.target.value })}
+      />
+
+      <InputField
+        label="Additional Costs"
+        value={trip.additionalIncome}
+        onChange={(e) =>
+          setTrip({ ...trip, additionalIncome: e.target.value })
+        }
+      />
+    </form>
+
+    {/* Driver Costs */}
+    <div className="px-6">
+      <h3 className="text-lg font-semibold text-black dark:text-white mb-4">
+        Driver Costs
+      </h3>
+    </div>
+    <div className="px-6 pb-6 space-y-6">
+      <InputField
+        label="Fuel Cost"
+        value={trip.fuelCost}
+        onChange={(e) => setTrip({ ...trip, fuelCost: e.target.value })}
+      />
+    <div className="flex items-center justify-between mb-4.5">
+      <label className="mb-2.5 block text-black dark:text-white">
+      Additional Costs<span className="text-meta-1">*</span>
+      </label>
+      <button
+        type="button"
+        onClick={addAdditionalCost}
+        className="rounded bg-primary px-4 py-1.5 text-sm text-white hover:bg-opacity-90"
+      >
+        + Add
+      </button>
+    </div>
+      {/* Dynamic Additional Costs */}
+      {trip.additionalCosts?.map((elem, idx) => (
+        <div
+          key={elem._id || idx}
+          className="flex flex-col gap-6 xl:flex-row border-b border-dashed pb-4"
+        >
+          <div className="w-full xl:w-1/2">
+            <label className="block mb-2 text-black dark:text-white">
+              Category
+            </label>
+            <select
+              name={`category${idx}`}
+              value={elem.category}
+              onChange={(e) =>
+                updateAdditionalCost(idx, 'category', e.target.value)
+              }
+              className={`relative z-20 w-full appearance-none rounded border border-stroke bg-transparent py-2 px-5 outline-none transition focus:border-primary active:border-primary dark:border-form-strokedark dark:bg-form-input dark:focus:border-primary ${
+                isOptionSelected ? 'text-black dark:text-white' : ''
+              }`}
+            >
+              <option value="" >
+                Select category
+              </option>
+              <option value="Toll">Toll</option>
+              <option value="Maintenance">Maintenance</option>
+              <option value="Miscellaneous">Miscellaneous</option>
+            </select>
+          </div>
+
+          <div className="w-full xl:w-1/2">
+            <label className="block mb-2 text-black dark:text-white">Cost</label>
+            <input
+              type="text"
+              name={`cost${idx}`}
+              value={elem.amount}
+              onChange={(e) =>
+                updateAdditionalCost(idx, 'amount', e.target.value)
+              }
+              className="w-full rounded border border-stroke py-2 px-4 bg-transparent dark:bg-form-input text-black outline-none focus:border-primary dark:border-form-strokedark dark:text-white"
+            />
+          </div>
         </div>
+      ))}
+
+      <button
+        type="button"
+        onClick={createNewTrip}
+        className="w-full rounded bg-primary p-3 font-medium text-white hover:bg-opacity-90"
+      >
+        Save
+      </button>
+    </div>
+  </div>
+</div>
+
 
         <div
           id="delete-user-modal"
           tabIndex="-1"
           aria-hidden="true"
-          className="hidden overflow-y-auto overflow-x-hidden fixed top-0 right-0 left-0 z-50 justify-center items-center w-full xl:w-1/2 md:inset-0 h-[calc(100%-1rem)] max-h-full"
+          className="hidden overflow-x-hidden fixed top-0 right-0 left-0 z-50 justify-center items-center w-full xl:w-1/2 md:inset-0 h-[calc(100%-1rem)] max-h-full"
           style={{ left: '30%', top: '5%', zIndex: '9999' }}
         >
           <div className="w-full flex flex-col bg-white border shadow-sm rounded-xl pointer-events-auto dark:bg-neutral-800 dark:border-neutral-700 dark:shadow-neutral-700/70">
@@ -612,7 +959,7 @@ const Trips = () => {
                 </svg>
               </button>
             </div>
-            <div className="p-4 overflow-y-auto">
+            <div className="p-4">
               <p className="mt-1 text-gray-800 dark:text-neutral-400">
                 Are you sure you want to delete this user?
               </p>
