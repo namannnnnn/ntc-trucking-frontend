@@ -29,6 +29,8 @@ const Profile = () => {
   const [isOptionSelected, setIsOptionSelected] = useState<boolean>(false);
   const [isEdit, setIsEdit] = useState<boolean>(false);
   const [userId, setUserId] = useState<string>('');
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isModalOpenDel, setIsModalOpenDel] = useState(false);
 
   const changeTextColor = () => {
     setIsOptionSelected(true);
@@ -56,6 +58,7 @@ const Profile = () => {
   const openPopup = () => {
     $("#crud-modal").removeClass("hidden");
     $("#crud-modal").addClass("show ");
+    setIsModalOpen(true)
   }
 
   const closePopup = () => {
@@ -66,6 +69,7 @@ const Profile = () => {
     setEmail('')
     setPassword('')
     setRole('')
+    setIsModalOpen(false)
   }
 
   const createNewUser = async() => {
@@ -114,18 +118,21 @@ const Profile = () => {
     $("#crud-modal").addClass("show");
     setIsEdit(true)
     setUserId(user["_id"])
+    setIsModalOpen(true)
   }
 
   const openDeleteUserPopup = (userId: any) => {
     setUserId(userId)
     $("#delete-user-modal").removeClass("hidden");
     $("#delete-user-modal").addClass("show");
+    setIsModalOpenDel(true)
   }
 
   const closeDeletePopup = () => {
     $("#delete-user-modal").removeClass("show");
     $("#delete-user-modal").addClass("hidden");
     setUserId('')
+    setIsModalOpenDel(false)
   }
 
   const deleteParticularUser = async() => {
@@ -292,8 +299,12 @@ const Profile = () => {
       </div>
         </div>
 
+        {isModalOpen && (
+          <>
+          {/* Background Overlay */}
+          <div className="fixed inset-0 bg-black bg-opacity-50 z-40"> </div>
         <div id="crud-modal" tabIndex="-1" aria-hidden="true" 
-            className="hidden overflow-y-auto overflow-x-hidden fixed top-0 right-0 left-0 z-50 justify-center items-center w-full xl:w-1/2 md:inset-0 h-[calc(100%-1rem)] max-h-full"
+            className=" overflow-y-auto overflow-x-hidden fixed top-0 right-0 left-0 z-50 justify-center items-center w-full xl:w-1/2 md:inset-0 h-[calc(100%-1rem)] max-h-full"
             style={{left: "30%", top:"15%"}}
             >
             <div className="rounded-sm border border-stroke bg-white shadow-default dark:border-strokedark dark:bg-boxdark">
@@ -459,9 +470,13 @@ const Profile = () => {
           </form>
         </div>
         </div> 
-
+        </>)}
+        {isModalOpenDel && (
+          <>
+          {/* Background Overlay */}
+          <div className="fixed inset-0 bg-black bg-opacity-50 z-40"> </div>
         <div id="delete-user-modal" tabIndex="-1" aria-hidden="true" 
-            className="hidden overflow-y-auto overflow-x-hidden fixed top-0 right-0 left-0 z-50 justify-center items-center w-full xl:w-1/2 md:inset-0 h-[calc(100%-1rem)] max-h-full"
+            className=" overflow-y-auto overflow-x-hidden fixed top-0 right-0 left-0 z-50 justify-center items-center w-full xl:w-1/2 md:inset-0 h-[calc(100%-1rem)] max-h-full"
             style={{left: "30%", top:"5%", zIndex: "9999"}}
             >
             <div className="w-full flex flex-col bg-white border shadow-sm rounded-xl pointer-events-auto dark:bg-neutral-800 dark:border-neutral-700 dark:shadow-neutral-700/70">
@@ -492,6 +507,7 @@ const Profile = () => {
               </div>
             </div>
         </div> 
+        </>)}
 
         {/* <button type="button" onClick={()=>openDeleteUserPopup("ppp")} class="py-3 px-4 inline-flex items-center gap-x-2 text-sm font-medium rounded-lg border border-transparent bg-blue-600 text-white hover:bg-blue-700 focus:outline-none focus:bg-blue-700 disabled:opacity-50 disabled:pointer-events-none" aria-haspopup="dialog" aria-expanded="false" aria-controls="delte-user-modal" data-hs-overlay="#delte-user-modal">
           Open modal
