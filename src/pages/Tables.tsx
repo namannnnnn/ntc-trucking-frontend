@@ -9,6 +9,7 @@ import { createDriver } from '../features/createDriverSlice';
 import { editDriver } from '../features/editDriverSlice';
 import { deleteDriver } from '../features/deleteDriverSlice';
 import $ from 'jquery'
+import { toast } from 'react-toastify';
 
 const Tables = () => {
 
@@ -29,6 +30,9 @@ const Tables = () => {
 
     const [isEdit, setIsEdit] = useState<boolean>(false);
     const [driverId, setDriverId] = useState<string>('');
+
+    const [isModalOpen, setIsModalOpen] = useState(false);
+    const [isModalOpenDel, setIsModalOpenDel] = useState(false);
       
     useEffect(()=>{
       getAllDrivers()
@@ -39,6 +43,12 @@ const Tables = () => {
       if (result.meta.requestStatus === 'fulfilled') {
         console.log("fulfilled")
         setDriverData(result.payload)
+      } else {
+        if(result.payload.status == 403){
+          toast.error("You're not authorized to perform this action");
+        } else {
+          toast.error('Trip creation failed!');
+        }
       }
     }
 
@@ -53,6 +63,7 @@ const Tables = () => {
     const openPopup = () => {
       $("#driver-details-modal").removeClass("hidden");
       $("#driver-details-modal").addClass("show ");
+      setIsModalOpen(true)
     }
   
     const closePopup = () => {
@@ -63,12 +74,14 @@ const Tables = () => {
       setEmail('')
       setContactNumber('')
       setTruckNumberPlate('')
+      setIsModalOpen(false)
     }
 
     const createNewDriver = async() => {
       if(isEdit){
         const result = await dispatch(editDriver({ name, email,contactNumber ,truckNumberPlate, driverId }));
         if (result.meta.requestStatus === 'fulfilled') {
+          toast.error('Driver details were edited successfully!');
           getAllDrivers()
           setIsEdit(false)
           setName('')
@@ -78,10 +91,18 @@ const Tables = () => {
           setDriverId('')
           $("#driver-details-modal").removeClass("show");
           $("#driver-details-modal").addClass("hidden");
+        } else {
+        if(result.payload.status == 403){
+          toast.error("You're not authorized to perform this action");
+        } else {
+          toast.error('Driver updation failed!');
         }
+        
+      }
       }else{
         const result = await dispatch(createDriver({ name, email, contactNumber, truckNumberPlate }));
         if (result.meta.requestStatus === 'fulfilled') {
+          toast.success('Driver was created successfully!');
           getAllDrivers()
           setIsEdit(false)
           setName('')
@@ -90,7 +111,14 @@ const Tables = () => {
           setTruckNumberPlate('')
           $("#driver-details-modal").removeClass("show");
           $("#driver-details-modal").addClass("hidden");
+        } else {
+        if(result.payload.status == 403){
+          toast.error("You're not authorized to perform this action");
+        } else {
+          toast.error('Driver creation failed!');
         }
+        
+      }
       }
     }
 
@@ -103,27 +131,38 @@ const Tables = () => {
       $("#driver-details-modal").addClass("show");
       setIsEdit(true)
       setDriverId(driver["_id"])
+      setIsModalOpen(true)
     }
 
     const openDeleteDriverPopup = (driverId: any) => {
       setDriverId(driverId)
       $("#delete-driver-modal").removeClass("hidden");
       $("#delete-driver-modal").addClass("show");
+      setIsModalOpenDel(true)
     }
   
     const closeDeletePopup = () => {
       $("#delete-driver-modal").removeClass("show");
       $("#delete-driver-modal").addClass("hidden");
       setDriverId('')
+      setIsModalOpenDel(false)
     }
   
     const deleteParticularDriver = async() => {
       const result = await dispatch(deleteDriver({driverId}));
       if (result.meta.requestStatus === 'fulfilled') {
+        toast.success('Driver deleted successfully!');
         getAllDrivers()
         setDriverId('')
         $("#delete-driver-modal").removeClass("show");
         $("#delete-driver-modal").addClass("hidden");
+      } else {
+        if(result.payload.status == 403){
+          toast.error("You're not authorized to perform this action");
+        } else {
+          toast.error('Driver deletion failed!');
+        }
+        
       }
     }
 
@@ -208,8 +247,12 @@ const Tables = () => {
               </div>
             </div>        
           </div>
+          {isModalOpen && (
+          <>
+          {/* Background Overlay */}
+          <div className="fixed inset-0 bg-black bg-opacity-50 z-40"> </div>
           <div id="driver-details-modal" tabIndex="-1" aria-hidden="true" 
-            className="hidden overflow-y-auto overflow-x-hidden fixed top-0 right-0 left-0 z-50 justify-center items-center w-full xl:w-1/2 md:inset-0 h-[calc(100%-1rem)] max-h-full"
+            className=" overflow-y-auto overflow-x-hidden fixed top-0 right-0 left-0 z-50 justify-center items-center w-full xl:w-1/2 md:inset-0 h-[calc(100%-1rem)] max-h-full"
             style={{left: "30%", top:"15%"}}
             >
             <div className="rounded-sm border border-stroke bg-white shadow-default dark:border-strokedark dark:bg-boxdark">
@@ -288,10 +331,14 @@ const Tables = () => {
             </div>
           </form>
         </div>
-        </div> 
+        </div> </>)}
 
+        {isModalOpenDel && (
+          <>
+          {/* Background Overlay */}
+          <div className="fixed inset-0 bg-black bg-opacity-50 z-40"> </div>
         <div id="delete-driver-modal" tabIndex="-1" aria-hidden="true" 
-            className="hidden overflow-y-auto overflow-x-hidden fixed top-0 right-0 left-0 z-50 justify-center items-center w-full xl:w-1/2 md:inset-0 h-[calc(100%-1rem)] max-h-full"
+            className=" overflow-y-auto overflow-x-hidden fixed top-0 right-0 left-0 z-50 justify-center items-center w-full xl:w-1/2 md:inset-0 h-[calc(100%-1rem)] max-h-full"
             style={{left: "30%", top:"5%", zIndex: "9999"}}
             >
             <div className="w-full flex flex-col bg-white border shadow-sm rounded-xl pointer-events-auto dark:bg-neutral-800 dark:border-neutral-700 dark:shadow-neutral-700/70">
@@ -322,6 +369,7 @@ const Tables = () => {
               </div>
             </div>
         </div> 
+        </>)}
       </DefaultLayout>
     </>
   );

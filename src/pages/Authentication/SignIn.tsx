@@ -9,6 +9,8 @@ import { AppDispatch } from '../../store';
 // import {login} from '../../actions/usersAction.js';
 import { login } from '../../features/userSlice';
 import DefaultLayout from '../../layout/DefaultLayout';
+import { toast } from 'react-toastify';
+
 
 const SignIn: React.FC = () => {
   const [email, setEmail] = useState('');
@@ -29,7 +31,13 @@ const SignIn: React.FC = () => {
       } else {
         navigate('/');
       }
-    }
+    } else {
+            // if(result.payload.status == 403){
+            //   toast.error("You're not authorized to perform this action");
+            // } else {
+              toast.error('User login failed!');
+            // }
+          } 
   };
 
   return (
